@@ -1,0 +1,7 @@
+{
+    "name": "node-monkey",
+    "version": "0.1.0",
+    "description": "A Node.js module for inspecting and debugging Node applications through a web browser",
+    "keywords": ["inspect objects", "object inspector", "inspect", "debug", "console.log", "object"],
+    "homepage": "https://github.com/jwarkentin/node-monkey"
+}
