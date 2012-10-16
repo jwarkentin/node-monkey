@@ -7,6 +7,14 @@ node-monkey runs a simple server and uses [Socket.IO](https://github.com/LearnBo
 It captures anything that would normally be logged to the terminal, converts it to JSON and passes it to the browser
 where it can be logged in the console for inspection.
 
+The motivation for this project came from trying to debug a Node server I wrote that used websockets.
+I found it problematic trying to inspect objects with the terminal.
+I tried using the built-in debugging that works with the [Chrome Developer Tools plugin](https://github.com/joyent/node/wiki/using-eclipse-as-node-applications-debugger) for Eclipse.
+Unfortunately, I ran into a problem where setting breakpoints to inspect objects would cause the server to stop responding to heartbeats and cause the client to disconnect.
+This would entirely mess up my debugging efforts. All I really needed to do was have a good way to inspect objects.
+I searched Google and found projects like [node-inspector](https://github.com/dannycoates/node-inspector), which doesn't work with the latest versions of Node, and [node-codein](http://thomashunter.name/blog/nodejs-console-object-debug-inspector/) which has many bugs.
+And neither works with Firefox. And node-monkey was born!
+
 Installation
 ------------
 
@@ -36,3 +44,8 @@ Options
 * **port**: The port to listen on. Default is `5678`.
 * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
 * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
+
+Contribute
+----------
+
+I welcome any pull requests, feature suggestions, bug fixes and bug reports. Let me know what you think.
