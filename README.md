@@ -45,7 +45,52 @@ Options
 * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
 * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
 
+Examples
+--------
+
+**Example 1**
+```javascript
+require('node-monkey').start();
+console.log('It works!', {key1: 'test', key2: ['an', 'array']});
+```
+
+**Example 2**
+```javascript
+require('node-monkey').start({
+  suppressOutput: false
+});
+
+console.log('It works!');
+console.warn('You might have done something wrong');
+console.error('FATAL ERROR', {message: 'Something broke'});
+```
+
 Contribute
 ----------
 
 I welcome any pull requests, feature suggestions, bug fixes and bug reports. Let me know what you think.
+
+## LICENSE - "MIT License"
+
+Copyright (c) 2012 Justin Warkentin
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
