@@ -1,7 +1,18 @@
 {
+    "author": "Justin Warkentin <justin.warkentin@gmail.com>",
     "name": "node-monkey",
     "version": "0.1.0",
     "description": "A Node.js module for inspecting and debugging Node applications through a web browser",
     "keywords": ["inspect objects", "object inspector", "inspect", "debug", "console.log", "object"],
-    "homepage": "https://github.com/jwarkentin/node-monkey"
+    "homepage": "https://github.com/jwarkentin/node-monkey",
+    "bugs": "https://github.com/jwarkentin/node-monkey/issues",
+    "main": "./index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jwarkentin/node-monkey.git"
+    },
+    "dependencies": {
+        "underscore": "*",
+        "socket.io": "*"
+    }
 }
