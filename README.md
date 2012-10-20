@@ -37,6 +37,15 @@ require('node-monkey').start([options]);
 To connect your browser simply go to `http://0.0.0.0:50500` in your web browser.
 If you change the default `host` and `port` bindings be sure to adjust your URL accordingly.
 
+As an alternative to viewing output through this page, you can also view output in the console of your own web application by including the following lines:
+
+```html
+<script type="text/javascript" src="http://0.0.0.0:50500/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://0.0.0.0:50500/client.js"></script>
+```
+
+**NOTE**: You do NOT have to refresh the page when you restart your Node application to continue to receive output. It will automatically reconnect.
+
 Options
 -------
 
