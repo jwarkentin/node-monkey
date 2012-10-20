@@ -66,7 +66,8 @@ _.extend(NodeMonkey.prototype, {
       host: '0.0.0.0',
       port: '50500',
       suppressOutput: true,
-      saveOutput: true
+      saveOutput: true,
+      silent: false
     }, config || {});
 
     var socketIOSrc = 'http://' + this.config.host + ':' + this.config.port + '/socket.io/socket.io.js';
@@ -90,6 +91,14 @@ _.extend(NodeMonkey.prototype, {
     });
 
     this.replaceConsole();
+
+    if(!this.config.silent) {
+      this.clog('-------------------');
+      this.clog('node-monkey started');
+      this.clog('To inspect output, open a browser to: http://' + this.config.host + ':' + this.config.port);
+      this.clog('-------------------');
+      this.clog(' ');
+    }
   }
 });
 
