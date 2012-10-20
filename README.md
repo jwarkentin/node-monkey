@@ -34,14 +34,14 @@ It captures all output to `console.log()`, `console.warn()` and `console.error()
 require('node-monkey').start([options]);
 ```
 
-To connect your browser simply go to `http://0.0.0.0:5678` in your web browser.
+To connect your browser simply go to `http://0.0.0.0:50500` in your web browser.
 If you change the default `host` and `port` bindings be sure to adjust your URL accordingly.
 
 Options
 -------
 
 * **host**: The host network interface to bind to. Default is `0.0.0.0` which means ALL interfaces.
-* **port**: The port to listen on. Default is `5678`.
+* **port**: The port to listen on. Default is `50500`.
 * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
 * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
 
@@ -69,6 +69,12 @@ Contribute
 ----------
 
 I welcome any pull requests, feature suggestions, bug fixes and bug reports. Let me know what you think.
+
+Dependencies
+------------
+
+* [Socket.IO](https://github.com/LearnBoost/socket.io)
+* [Underscore](http://documentcloud.github.com/underscore/)
 
 ## LICENSE - "MIT License"
 
