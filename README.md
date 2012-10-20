@@ -44,6 +44,7 @@ Options
 * **port**: The port to listen on. Default is `50500`.
 * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
 * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
+* **silent**: If `true` then nothing will be logged to the console when started. Default is `false`.
 
 Examples
 --------
