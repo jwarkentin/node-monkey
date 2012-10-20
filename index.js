@@ -13,12 +13,11 @@ _.extend(NodeMonkey.prototype, {
   consoleMsg: function(type, data) {
     // Send to open sockets if there is at least one, otherwise buffer
     var consoleData = {type: type, data: Array.prototype.slice.call(data)};
-    if(!this.iosrv || !this.iosrv.sockets.length) {
+    if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
+      this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);
     } else {
-      for(var i = 0; i < this.iosrv.sockets.length; i++) {
-        this.iosrv.sockets[i].emit('console', consoleData);
-      }
+      this.iosrv.sockets.emit('console', consoleData);
     }
 
     // Dump to console if requested
@@ -27,6 +26,18 @@ _.extend(NodeMonkey.prototype, {
       if(this[msgFunc]) this[msgFunc].apply(console, arguments);
     }
   },
+
+  // If there are multiple clients that are reconnecting, we want to give them a little time
+  // so we can send any buffered messages to as many as possible
+  trySendBuffer: _.debounce(function() {
+    if(this.msgbuffer.length) {
+      for(var i = 0; i < this.msgbuffer.length; i++) {
+        this.iosrv.sockets.emit('console', this.msgbuffer[i]);
+      }
+
+      this.msgbuffer = [];
+    }
+  }, 800),
 
   replaceConsole: function() {
     var that = this;
@@ -53,7 +64,7 @@ _.extend(NodeMonkey.prototype, {
 
     this.config = _.extend({
       host: '0.0.0.0',
-      port: '5678',
+      port: '50500',
       suppressOutput: true,
       saveOutput: true
     }, config || {});
@@ -75,13 +86,7 @@ _.extend(NodeMonkey.prototype, {
     this.iosrv.enable('browser client gzip');
 
     this.iosrv.sockets.on('connection', function(socket) {
-      if(that.msgbuffer.length) {
-        for(var i = 0; i < that.msgbuffer.length; i++) {
-          socket.emit('console', that.msgbuffer[i]);
-        }
-
-        that.msgbuffer = [];
-      }
+      that.trySendBuffer();
     });
 
     this.replaceConsole();
