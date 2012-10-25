@@ -74,7 +74,7 @@ _.extend(NodeMonkey.prototype, {
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(req.url == '/client.js') {
-        var clientJS = fs.readFileSync('./client.js');
+        var clientJS = fs.readFileSync(__dirname + '/client.js');
         res.end(clientJS);
       } else {
         res.end('<html><head><title>Node Monkey</title><script type="text/javascript" src="' +  socketIOSrc + '"></script><script type="text/javascript" src="/client.js"></script><head><body>Open your console to see output</body></html>');

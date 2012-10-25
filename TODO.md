@@ -1,0 +1,4 @@
+- console.trace() functionality
+- Provide file and line numbers to client of where console.log() was called
+- Pass data through to client, even if there's a fatal exception
+- Provide a way to send commands back to the NodeJS app
