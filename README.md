@@ -138,6 +138,27 @@ Just a final note about the identifiers/keys used when timing functions. They ar
 key as many times as you want. If you want to distinguish between different calls using the same key, put something unique in the `params`
 argument which follows the identifier.
 
+
+Inspecting profiler data
+------------------------
+
+Inspecting the data from the profiler is really simple. From your developer console in Firefox/Chrome/whatever else, just type something like the following:
+
+```javascript
+nm.cmd('profiler.getData', null, function(resp) { console.log(resp); });
+```
+
+Here are some examples of the other supported commands you can use right now:
+
+```javascript
+nm.cmd('profiler.pause');
+nm.cmd('profiler.resume');
+
+nm.cmd('profiler.startTime', ['test'], function(resp) { window.timerId = resp; });
+/* You can even time some of your own client side code here */
+nm.cmd('profiler.stopTime', [window.timerId], function() { console.log('Timer stopped'); });
+```
+
 Contribute
 ----------
 
