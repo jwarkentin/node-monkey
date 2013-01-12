@@ -1,7 +1,6 @@
 - console.trace() functionality
 - Provide file and line numbers to client of where console.log() was called
 - Pass data through to client, even if there's a fatal exception
-- Provide a way to send commands back to the NodeJS app
 - Support cyclical objects by overriding JSON.stringify() and JSON.parse(). Have a look at 'cycle.js' here: https://github.com/douglascrockford/JSON-js
 - Send full object representation, including function()'s
 - Is it possible to rebuild full objects including inheritance?

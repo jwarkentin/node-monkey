@@ -38,9 +38,9 @@
 
   connection.on('connect', function() {
     logMsg(' ');
-    logMsg('---------------------');
-    logMsg('Welcome to node-mokey');
-    logMsg('---------------------');
+    logMsg(' /--------------------\\');
+    logMsg('  Welcome to NodeMokey');
+    logMsg(' \\--------------------/');
   });
 
   connection.on('reconnecting', function(delay, attempts) {
@@ -75,5 +75,44 @@
       }
     }, 500);
   }
+
+
+
+  //
+  // -- NodeMonkey API --
+  //
+
+  window.nm = {
+    _cmdCall: 0,
+    _callbacks: {},
+
+    cmd: function(cmd, args, callback) {
+      var cmdId = ++nm._cmdCall;
+      connection.emit('cmd', {command: cmd, args: args, cmdId: cmdId});
+
+      if(callback) {
+        nm._callbacks[cmdId] = callback;
+      }
+    },
+
+    _response: function(resp) {
+      var cb = nm._callbacks[resp.cmdId];
+      if(cb) {
+        cb(resp.result);
+      }
+    },
+
+    profiler: {
+      pause: function() {
+        nm.cmd('profiler.pause');
+      },
+
+      resume: function() {
+        nm.cmd('profiler.resume');
+      }
+    }
+  };
+
+  connection.on('cmdResponse', nm._response);
 
 })();
