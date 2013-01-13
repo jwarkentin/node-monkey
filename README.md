@@ -43,8 +43,8 @@ As an alternative to viewing output through this page, you can also view output 
 
 ```html
 <script type="text/javascript" src="http://0.0.0.0:50500/socket.io/socket.io.js"></script>
-<script type="text/javascript" src="http://0.0.0.0:50500/client.js"></script>
 <script type="text/javascript" src="http://0.0.0.0:50500/underscore.js"></script>
+<script type="text/javascript" src="http://0.0.0.0:50500/client.js"></script>
 ```
 
 **NOTE**: You do NOT have to refresh the page when you restart your Node application to continue to receive output. It will automatically reconnect.
