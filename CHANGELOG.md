@@ -1,3 +1,15 @@
+Version 0.3.0
+-------------
+- Added missing 'profiler.getData' and 'profiler.clearData' commands to client side
+- Changed the way commands work for added security and to make the command interface available the application developer for any desired use
+- Added support for logging cyclical objects using cycle.js from https://github.com/douglascrockford/JSON-js (Thanks Douglas Crockford)
+- Cleaned up code a bit including moving all code related files (except index.js) to `src/` directory and breaking client HTML file into
+  a separate Underscore template file
+- Renamed global object from 'nm' to 'nomo'
+- Added 'revertConsole()' method
+- Removed `active` config option for profiler and any documentation referencing configuring the profiler until there is something to configure
+- Standardized a method of documentation and documented everything well
+
 Version 0.2.0
 -------------
 - Added profiling functionality

@@ -1,6 +1,13 @@
 - console.trace() functionality
 - Provide file and line numbers to client of where console.log() was called
 - Pass data through to client, even if there's a fatal exception
-- Support cyclical objects by overriding JSON.stringify() and JSON.parse(). Have a look at 'cycle.js' here: https://github.com/douglascrockford/JSON-js
 - Send full object representation, including function()'s
+- Replace object's functions with a call that sends a command, runs the function and returns the result
 - Is it possible to rebuild full objects including inheritance?
+
+- Login interface (hashing and nonce security) using socketIO 'authorization'
+- Replace setConfig() with setOptions() which takes one object or two args (option, value)
+
+## Profiler
+
+- Implement a way to view the help descriptions on commands

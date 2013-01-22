@@ -1,5 +1,6 @@
 var clog = console.log;
-var nm = require('./index.js').start();
+var nomo = require('./index.js').start();
+nomo.profiler.start();
 
 function logObject() {
   clog('Sending object to clients');
@@ -14,7 +15,7 @@ logObject();
 // -- Test profiling --
 //
 
-(nm.profiler.profile('test function', function() {
+(nomo.profiler.profile('test function', function() {
   console.log('testing profiler');
 }))();
-console.log(nm.profiler.getData());
+console.log(nomo.profiler.getData());

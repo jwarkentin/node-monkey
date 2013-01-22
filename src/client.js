@@ -16,6 +16,8 @@
     if(isFirefox && !window.console.exception) {
       msgBuffer.push(data);
     } else {
+      data.data = JSON.retrocycle(data.data);
+
       if(data.type && data.data) {
         console[data.type].apply(console, data.data);
       } else {
@@ -82,37 +84,41 @@
   // -- NodeMonkey API --
   //
 
-  window.nm = {
+  window.nomo = {
     _cmdCall: 0,
     _callbacks: {},
 
     cmd: function(cmd, args, callback) {
-      var cmdId = ++nm._cmdCall;
+      var cmdId = ++nomo._cmdCall;
       connection.emit('cmd', {command: cmd, args: args, cmdId: cmdId});
 
       if(callback) {
-        nm._callbacks[cmdId] = callback;
+        nomo._callbacks[cmdId] = callback;
       }
     },
 
     _response: function(resp) {
-      var cb = nm._callbacks[resp.cmdId];
+      var cb = nomo._callbacks[resp.cmdId];
       if(cb) {
-        cb(resp.result);
+        cb(resp.result, resp.error);
       }
     },
 
     profiler: {
-      pause: function() {
-        nm.cmd('profiler.pause');
+      start: function() {
+        nomo.cmd('profiler.start');
       },
 
-      resume: function() {
-        nm.cmd('profiler.resume');
+      stop: function() {
+        nomo.cmd('profiler.stop');
+      },
+
+      getData: function(callback) {
+       nomo.cmd('profiler.getData', null, callback);
       }
     }
   };
 
-  connection.on('cmdResponse', nm._response);
+  connection.on('cmdResponse', nomo._response);
 
 })();

@@ -10,19 +10,20 @@ var profiler = function(options) {
 
 _.extend(profiler.prototype, {
   setConfig: function(config) {
+    this.active = false;
     this.config = _.extend({
-      active: true
+      //active: true
     }, config || {});
 
     return this;
   },
 
-  pause: function() {
-    this.config.active = false;
+  start: function() {
+    this.active = true;
   },
 
-  resume: function() {
-    this.config.active = true;
+  stop: function() {
+    this.active = false;
   },
 
   getData: function() {
@@ -37,8 +38,12 @@ _.extend(profiler.prototype, {
     return data;
   },
 
+  clearData: function() {
+    this.data = {};
+  },
+
   startTime: function(key, params) {
-    if(!this.config.active) return;
+    if(!this.active) return;
 
     var uuid = ++this.uuid;
     this.uuidData[uuid] = {key: key, params: params, startTime: new Date()};
@@ -49,11 +54,11 @@ _.extend(profiler.prototype, {
   },
 
   stopTime: function(uuid) {
-    if(!this.config.active) return;
-
     var stopTime = new Date();
     var uuidData = this.uuidData[uuid];
     if(!uuidData) {
+      if(!this.active) return;
+
       console.error('Invalid timer ID. Give the ID returned from calling startTime().');
       return;
     }
