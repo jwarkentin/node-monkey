@@ -4,8 +4,8 @@ var httpServer = require('http');
 var socketIO = require('socket.io');
 var fs = require('fs');
 //var clientJS = fs.readFileSync('./client.js');
-var clientHTML = _.template(fs.readFileSync('./src/client.html').toString());
-var profiler = require('./src/profiler.js');
+var clientHTML = _.template(fs.readFileSync(__dirname + '/src/client.html').toString());
+var profiler = require(__dirname + '/src/profiler.js');
 
 function NodeMonkey() {
   var that = this;
