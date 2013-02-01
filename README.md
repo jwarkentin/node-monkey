@@ -39,8 +39,8 @@ Complete Documentation
 ----------------------
 To get a quick start see the limited examples below. For complete documentation see the following links:
 
-* [NodeMonkey API](https://github.com/jwarkentin/node-monkey/blob/master/doc/nomo.md)
-* [Profiler API](https://github.com/jwarkentin/node-monkey/blob/master/doc/profiler.md)
+* [NodeMonkey API](doc/nomo.md)
+* [Profiler API](doc/profiler.md)
 
 Usage
 -----
