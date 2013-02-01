@@ -10,6 +10,11 @@ var profiler = require(__dirname + '/src/profiler.js');
 function NodeMonkey() {
   var that = this;
 
+  // Maintain internal references to any functions we will use or override
+  this.clog = console.log;
+  this.cwarn = console.warn;
+  this.cerror = console.error;
+
   this.config = {};
   this.msgbuffer = [];
   this.commands = {};
@@ -67,8 +72,22 @@ _.extend(NodeMonkey.prototype, {
   },
 
   consoleMsg: function(type, data) {
+    var that = this;
+
+    // Capture file and line number of caller. Unfortunately, the API doesn't seem to allow it, so instead we'll just have to parse it out.
+    var stack = (new Error()).stack.toString().split('\n');
+    var caller = stack[3]; // First line is just 'Error'
+    var callerData = caller.match(/at (.*) \((.*):(.*):(.*)\)/);
+    if(!callerData) callerData = caller.match(/at ()(.*):(.*):(.*)/);
+    callerData = {
+      callerName: callerData[1],
+      file: callerData[2],
+      line: parseInt(callerData[3]),
+      column: parseInt(callerData[4])
+    };
+
     // Send to open sockets if there is at least one, otherwise buffer
-    var consoleData = {type: type, data: JSON.decycle(Array.prototype.slice.call(data))};
+    var consoleData = {type: type, data: JSON.decycle(Array.prototype.slice.call(data)), callerData: callerData};
     if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
       this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);
@@ -97,10 +116,6 @@ _.extend(NodeMonkey.prototype, {
 
   replaceConsole: function() {
     var that = this;
-
-    this.clog = console.log;
-    this.cwarn = console.warn;
-    this.cerror = console.error;
 
     console.log = function() {
       that.consoleMsg('log', arguments);
@@ -146,7 +161,6 @@ _.extend(NodeMonkey.prototype, {
 
     this.setConfig(config);
 
-    var socketIOSrc = 'http://' + this.config.host + ':' + this.config.port + '/socket.io/socket.io.js';
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(['/client.js', '/cycle.js'].indexOf(req.url) != -1) {
@@ -154,9 +168,7 @@ _.extend(NodeMonkey.prototype, {
       } else if(req.url == '/underscore.js') {
         res.end(fs.readFileSync('./node_modules/underscore/underscore-min.js'));
       } else {
-        res.end(clientHTML({
-          socketIOSrc: socketIOSrc
-        }));
+        res.end(clientHTML());
       }
     }).listen(this.config.port, this.config.host);
     this.iosrv = socketIO.listen(this.srv);

@@ -19,6 +19,10 @@
       data.data = JSON.retrocycle(data.data);
 
       if(data.type && data.data) {
+        var cdata = data.callerData;
+        if(cdata) {
+          data.data.push('-- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.callerName ? '(function ' + cdata.callerName + ')' : ''));
+        }
         console[data.type].apply(console, data.data);
       } else {
         console.log(data);
@@ -31,7 +35,8 @@
   // - Websocket connection -
   //
 
-  var connection = io.connect(location.host, {
+  var host = location.protocol + '//' + location.hostname + ':' + location.port;
+  var connection = io.connect(host, {
     'reconnect': true,
     'connect timeout': 4000,
     'max reconnection attempts': Infinity,
