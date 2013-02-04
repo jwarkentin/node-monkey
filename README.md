@@ -8,7 +8,9 @@ It captures anything that would normally be logged to the terminal, converts it 
 where it can be logged in the console for inspection.
 
 Version 0.2.0 also introduces code profiling functionality and the ability to send commands to your Node.js application from your web browser.  
-Version 0.2.1 introduces major changes and cleanup. You can now register your own commands that can then be run from the browser.
+Version 0.2.1 introduces major changes and cleanup. You can now register your own commands that can be run from the browser's Javascript console.
+
+ --
 
 The motivation for this project came from trying to debug a Node.js server I wrote that used websockets.
 I found it problematic trying to inspect objects with the terminal.
@@ -19,6 +21,11 @@ I searched Google and found projects like [node-inspector](https://github.com/da
 And neither works with Firefox.
 
 NodeMonkey was born!
+
+Compatibility
+-------------
+
+Any browser with a Javasript console and websocket soupport!
 
 Installation
 ------------
@@ -42,8 +49,8 @@ To get a quick start see the limited examples below. For complete documentation 
 * [NodeMonkey API](doc/nomo.md)
 * [Profiler API](doc/profiler.md)
 
-Usage
------
+Quick Usage
+-----------
 
 Using NodeMonkey is extremely easy.
 All you have to do is include the following line in your Node.js application.
@@ -57,7 +64,8 @@ var nomo = require('node-monkey').start([options]);
 To connect your browser simply go to `http://0.0.0.0:50500` in your web browser.
 If you change the default `host` and `port` bindings be sure to adjust your URL accordingly.
 
-As an alternative to viewing output through this page, you can also view output in the console of your own web application by including the following lines:
+As an alternative to viewing output through this page, you can also view output in the console of your own web application by including the following lines
+(adjust the host and port as necessary, this is based on the defaults):
 
 ```html
 <script type="text/javascript" src="http://0.0.0.0:50500/socket.io/socket.io.js"></script>
