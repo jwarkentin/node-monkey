@@ -1,4 +1,8 @@
 # NodeMonkey API
+Assuming:
+```js
+var nomo = require('node-monkey');
+```
 
 ## nomo.setConfig(config)
 Set/Reset config options.  
