@@ -1,4 +1,9 @@
-Version 0.3.0
+Version 0.2.4
+-------------
+- Fixed a bug with cycle.js causing it to filter out functions any potentially other data types
+- Now sends full object representation including functions, which are normally stripped out by converting to JSON
+
+Version 0.2.3
 -------------
 - Added missing 'profiler.getData' and 'profiler.clearData' commands to client side
 - Changed the way commands work for added security and to make the command interface available the application developer for any desired use
