@@ -10,6 +10,17 @@ function logObject() {
 //setInterval(logObject, 3000);
 logObject();
 
+// Test sending functions
+console.log({
+  testfunc: function() {},
+  nestedArray: [
+    function() {},
+    function() {},
+    function() {},
+    { nested: function() {} }
+  ]
+});
+
 
 //
 // -- Test profiling --

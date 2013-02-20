@@ -2,9 +2,9 @@
     "author": "Justin Warkentin <justin.warkentin@gmail.com>",
     "name": "node-monkey",
 
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "A Node.js module for inspecting, profiling and debugging Node.js applications through a web browser",
-    "keywords": ["inspect", "debug", "console.log", "profile"],
+    "keywords": ["inspect", "debug", "debugging", "console", "log", "profile", "profiler"],
     "homepage": "https://github.com/jwarkentin/node-monkey",
     "bugs": "https://github.com/jwarkentin/node-monkey/issues",
     "main": "./index.js",

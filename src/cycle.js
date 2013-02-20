@@ -100,9 +100,7 @@ if (typeof JSON.decycle !== 'function') {
                     }
                 }
                 return nu;
-            case 'number':
-            case 'string':
-            case 'boolean':
+            default:
                 return value;
             }
         }(object, '$'));

@@ -71,6 +71,26 @@ _.extend(NodeMonkey.prototype, {
     return this;
   },
 
+  prepSendData: function(data) {
+    // Decycle
+    var sendData = JSON.decycle(data);
+
+    // Replace function()'s with placeholders
+    (function freplace(rdata) {
+      for(var prop in rdata) {
+        if(_.isFunction(rdata[prop])) {
+          // At some point in the future this could replace it with a version of the function capable of making
+          // using a command to actually call the function over the websocket.
+          rdata[prop] = rdata[prop].toString();
+        } else if(_.isObject(rdata[prop])) {
+          freplace(rdata[prop]);
+        }
+      }
+    })(sendData);
+
+    return sendData;
+  },
+
   consoleMsg: function(type, data) {
     var that = this;
 
@@ -87,7 +107,9 @@ _.extend(NodeMonkey.prototype, {
     };
 
     // Send to open sockets if there is at least one, otherwise buffer
-    var consoleData = {type: type, data: JSON.decycle(Array.prototype.slice.call(data)), callerData: callerData};
+    var sendData = this.prepSendData(Array.prototype.slice.call(data));
+
+    var consoleData = {type: type, data: sendData, callerData: callerData};
     if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
       this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);

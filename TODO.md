@@ -1,7 +1,6 @@
 - console.trace() functionality
 - Catch unhandled exceptions and pass them through before dying
 - Pass data through to client, even if there's a fatal exception
-- Send full object representation, including function()'s
 - Replace object's functions with a call that sends a command, runs the function and returns the result
 - Is it possible to rebuild full objects including inheritance?
 
