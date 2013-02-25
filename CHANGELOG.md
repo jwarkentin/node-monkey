@@ -1,7 +1,7 @@
 Version 0.2.5
 -------------
-Fixed bug where results of commands weren't being decycled before being sent to the client
-Allow second argument to nomo.cmd(...) on client to be optional - if no args are used or required, just pass the callback as the second argument instead
+- Fixed bug where results of commands weren't being decycled before being sent to the client
+- Allow second argument to nomo.cmd(...) on client to be optional - if no args are used or required, just pass the callback as the second argument instead
 
 Version 0.2.4
 -------------
