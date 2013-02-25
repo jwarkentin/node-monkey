@@ -80,7 +80,7 @@ _.extend(NodeMonkey.prototype, {
       for(var prop in rdata) {
         if(_.isFunction(rdata[prop])) {
           // At some point in the future this could replace it with a version of the function capable of making
-          // using a command to actually call the function over the websocket.
+          // a command to actually call the function over the websocket.
           rdata[prop] = rdata[prop].toString();
         } else if(_.isObject(rdata[prop])) {
           freplace(rdata[prop]);
@@ -114,7 +114,11 @@ _.extend(NodeMonkey.prototype, {
       this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);
     } else {
-      this.iosrv.sockets.emit('console', consoleData);
+      try {
+        this.iosrv.sockets.emit('console', consoleData);
+      } catch(err) {
+        this.clog('Failed sending message: ' + err);
+      }
     }
 
     // Dump to console if requested
@@ -215,7 +219,11 @@ _.extend(NodeMonkey.prototype, {
           error = "There is no registered command for '" + cmd.command + "'";
         }
 
-        socket.emit('cmdResponse', { cmdId: cmd.cmdId, result: result, error: error });
+        try{
+          socket.emit('cmdResponse', { cmdId: cmd.cmdId, result: that.prepSendData(result), error: error });
+        } catch(err) {
+          that.clog('Failed sending message: ' + err);
+        }
 
         //var callObj = ['that'].concat(cmd.command.split('.').slice(0, -1)).join('.');
         //socket.emit('cmdResponse', { cmdId: cmd.cmdId, result: eval('that.' + cmd.command + '.apply(' + callObj + ', cmd.args);') });

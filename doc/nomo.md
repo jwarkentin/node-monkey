@@ -46,6 +46,9 @@ nomo.registerCommand({
 Given the above, from the browser you can then run:
 
 ```js
+// NOTE: The second argument where you list args to pass to the command is now optional.
+//       If there are no args you can either pass the callback as the second argument or
+//       pass 'null' to skip over it and continue passing the callback as the 3rd argument.
 nomo.cmd('myApp.doSomething', [arg1, arg2, arg3], function(response, error) {
     console.log(response, error);
 });

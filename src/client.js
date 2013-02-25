@@ -12,29 +12,34 @@
   // - Global Functions -
   //
 
+  // NOTE: Modifies the passed object
+  function prepSentData(data) {
+    // Replace function placeholder's with actual functions
+    (function freplace(rdata) {
+      for(var prop in rdata) {
+        if(typeof(rdata[prop]) == 'string' && rdata[prop].substr(0, 9) == 'function ') {
+          // At some point in the future this could either call .toString() on the function or replace it with a version
+          // of the function capable of making using a command to actually call the function over the websocket.
+          try {
+            eval('rdata[prop] = ' + rdata[prop]);
+          } catch(err) {
+            rdata[prop] = function() {};
+          }
+        } else if(_.isObject(rdata[prop])) {
+          freplace(rdata[prop]);
+        }
+      }
+    })(data);
+
+    return JSON.retrocycle(data);
+  }
+
   function logMsg(data) {
     if(isFirefox && !window.console.exception) {
       msgBuffer.push(data);
     } else {
 
-      // Replace function placeholder's with actual functions
-      (function freplace(rdata) {
-        for(var prop in rdata) {
-          if(typeof(rdata[prop]) == 'string' && rdata[prop].substr(0, 9) == 'function ') {
-            // At some point in the future this could either call .toString() on the function or replace it with a version
-            // of the function capable of making using a command to actually call the function over the websocket.
-            try {
-              eval('rdata[prop] = ' + rdata[prop]);
-            } catch(err) {
-              rdata[prop] = function() {};
-            }
-          } else if(_.isObject(rdata[prop])) {
-            freplace(rdata[prop]);
-          }
-        }
-      })(data.data);
-
-      data.data = JSON.retrocycle(data.data);
+      data.data = prepSentData(data.data);
 
       if(data.type && data.data) {
         var cdata = data.callerData;
@@ -112,6 +117,11 @@
     _callbacks: {},
 
     cmd: function(cmd, args, callback) {
+      if(_.isFunction(args) && !callback) {
+        callback = args;
+        args = null;
+      }
+
       var cmdId = ++nomo._cmdCall;
       connection.emit('cmd', {command: cmd, args: args, cmdId: cmdId});
 
@@ -121,6 +131,7 @@
     },
 
     _response: function(resp) {
+      resp.result = prepSentData(resp.result);
       var cb = nomo._callbacks[resp.cmdId];
       if(cb) {
         cb(resp.result, resp.error);
