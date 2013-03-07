@@ -58,7 +58,7 @@
   // - Websocket connection -
   //
 
-  var host = location.protocol + '//' + location.hostname + ':' + location.port;
+  var host = location.protocol + '//' + location.hostname + ':' + <%= nomoPort %>;
   var connection = io.connect(host, {
     'reconnect': true,
     'connect timeout': 4000,

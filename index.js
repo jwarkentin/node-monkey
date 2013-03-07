@@ -1,4 +1,4 @@
-require('./src/cycle.js');
+require(__dirname + '/src/cycle.js');
 var _ = require('underscore');
 var httpServer = require('http');
 var socketIO = require('socket.io');
@@ -189,14 +189,17 @@ _.extend(NodeMonkey.prototype, {
 
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
-      } else if(['/client.js', '/cycle.js'].indexOf(req.url) != -1) {
+      } else if(req.url == '/client.js') {
+        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {nomoPort: that.config.port}));
+      } else if(req.url == '/cycle.js') {
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
       } else if(req.url == '/underscore.js') {
-        res.end(fs.readFileSync('./node_modules/underscore/underscore-min.js'));
+        res.end(fs.readFileSync(__dirname + '/node_modules/underscore/underscore-min.js'));
       } else {
         res.end(clientHTML());
       }
     }).listen(this.config.port, this.config.host);
+
     this.iosrv = socketIO.listen(this.srv);
     this.iosrv.set('log level', 1);
     this.iosrv.enable('browser client minification');

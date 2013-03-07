@@ -1,3 +1,8 @@
+Version 0.2.6
+-------------
+- Fixed references to cycle.js and underscore-min.js
+- Using underscore templates to serve up the client.js file with the correct configured port for socket.io to connect to
+
 Version 0.2.5
 -------------
 - Fixed bug where results of commands weren't being decycled before being sent to the client
