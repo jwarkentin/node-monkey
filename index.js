@@ -1,5 +1,5 @@
 require(__dirname + '/src/cycle.js');
-var _ = require('underscore');
+var _ = require('lodash');
 var httpServer = require('http');
 var socketIO = require('socket.io');
 var fs = require('fs');
@@ -193,8 +193,8 @@ _.extend(NodeMonkey.prototype, {
         res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {nomoPort: that.config.port}));
       } else if(req.url == '/cycle.js') {
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
-      } else if(req.url == '/underscore.js') {
-        res.end(fs.readFileSync(__dirname + '/node_modules/underscore/underscore-min.js'));
+      } else if(req.url == '/lodash.js') {
+        res.end(fs.readFileSync(__dirname + '/node_modules/lodash/lodash.js'));
       } else {
         res.end(clientHTML());
       }
