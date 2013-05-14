@@ -20,7 +20,7 @@ This would entirely mess up my debugging efforts. All I really needed to do was 
 I searched Google and found projects like [node-inspector](https://github.com/dannycoates/node-inspector), which doesn't work with the latest versions of Node, and [node-codein](http://thomashunter.name/blog/nodejs-console-object-debug-inspector/) which has many bugs.
 And neither works with Firefox.
 
-NodeMonkey was born!
+So NodeMonkey was born!
 
 Compatibility
 -------------

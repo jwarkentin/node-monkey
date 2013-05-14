@@ -1,3 +1,11 @@
+Version 0.2.7
+-------------
+- New `overrideConsole` option to disable overriding the console functions when starting NodeMonkey
+- Allow configuring the `host` the NodeMonkey client should connect to and not just the `port`. This is useful when the server is running on a different subdomain or other hostname than the one in the URL.
+- Get rid of buffering message spam in the console where NodeMonkey is running
+- Use Lo-Dash instead of Underscore
+- Support `console.dir()`
+
 Version 0.2.6
 -------------
 - Fixed references to cycle.js and underscore-min.js

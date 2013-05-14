@@ -3,6 +3,7 @@ var _ = require('lodash');
 var httpServer = require('http');
 var socketIO = require('socket.io');
 var fs = require('fs');
+
 //var clientJS = fs.readFileSync('./client.js');
 var clientHTML = _.template(fs.readFileSync(__dirname + '/src/client.html').toString());
 var profiler = require(__dirname + '/src/profiler.js');
@@ -14,6 +15,7 @@ function NodeMonkey() {
   this.clog = console.log;
   this.cwarn = console.warn;
   this.cerror = console.error;
+  this.cdir = console.dir;
 
   this.config = {};
   this.msgbuffer = [];
@@ -57,6 +59,7 @@ _.extend(NodeMonkey.prototype, {
     this.config = _.extend({
       host: '0.0.0.0',
       port: '50500',
+      overrideConsole: true,
       suppressOutput: true,
       saveOutput: true,
       silent: false
@@ -111,13 +114,13 @@ _.extend(NodeMonkey.prototype, {
 
     var consoleData = {type: type, data: sendData, callerData: callerData};
     if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
-      this.clog('No clients - buffering');
+      //this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);
     } else {
       try {
         this.iosrv.sockets.emit('console', consoleData);
       } catch(err) {
-        this.clog('Failed sending message: ' + err);
+        this.cerror('Failed sending message: ' + err);
       }
     }
 
@@ -155,6 +158,10 @@ _.extend(NodeMonkey.prototype, {
       that.consoleMsg('error', arguments);
     };
 
+    console.dir = function() {
+      that.consoleMsg('dir', arguments);
+    };
+
     return this;
   },
 
@@ -162,6 +169,7 @@ _.extend(NodeMonkey.prototype, {
     console.log = this.clog;
     console.warn = this.cwarn;
     console.error = this.cerror;
+    console.dir = this.cdir;
   },
 
   /**
@@ -190,7 +198,7 @@ _.extend(NodeMonkey.prototype, {
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(req.url == '/client.js') {
-        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {nomoPort: that.config.port}));
+        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {nomoHost: that.config.host, nomoPort: that.config.port}));
       } else if(req.url == '/cycle.js') {
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
       } else if(req.url == '/lodash.js') {
@@ -233,7 +241,9 @@ _.extend(NodeMonkey.prototype, {
       });
     });
 
-    this.replaceConsole();
+    if(this.config.overrideConsole) {
+      this.replaceConsole();
+    }
 
     if(!this.config.silent) {
       this.clog('------------------');
