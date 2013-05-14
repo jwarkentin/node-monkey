@@ -13,7 +13,7 @@
         "url": "https://github.com/jwarkentin/node-monkey.git"
     },
     "dependencies": {
-        "underscore": "*",
+        "lodash": "*",
         "socket.io": "*"
     }
 }

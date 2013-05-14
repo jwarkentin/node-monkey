@@ -69,7 +69,7 @@ As an alternative to viewing output through this page, you can also view output 
 
 ```html
 <script type="text/javascript" src="http://0.0.0.0:50500/socket.io/socket.io.js"></script>
-<script type="text/javascript" src="http://0.0.0.0:50500/underscore.js"></script>
+<script type="text/javascript" src="http://0.0.0.0:50500/lodash.js"></script>
 <script type="text/javascript" src="http://0.0.0.0:50500/cycle.js"></script>
 <script type="text/javascript" src="http://0.0.0.0:50500/client.js"></script>
 ```
@@ -123,7 +123,7 @@ Dependencies
 ------------
 
 * [Socket.IO](https://github.com/LearnBoost/socket.io)
-* [Underscore](http://documentcloud.github.com/underscore/)
+* [Lo-Dash](https://github.com/bestiejs/lodash)
 
 ## LICENSE - "MIT License"
 
