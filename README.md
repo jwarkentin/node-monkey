@@ -7,7 +7,7 @@ NodeMonkey runs a simple server and uses [Socket.IO](https://github.com/LearnBoo
 It captures anything that would normally be logged to the terminal, converts it to JSON and passes it to the browser
 where it can be logged in the console for inspection.
 
-Version 0.2.0 also introduces code profiling functionality and the ability to send commands to your Node.js application from your web browser.
+Version 0.2.0 also introduces code profiling functionality and the ability to send commands to your Node.js application from your web browser.  
 Version 0.2.1 introduces major changes and cleanup. You can now register your own commands that can be run from the browser's Javascript console.
 
  --
