@@ -5,6 +5,7 @@
   //
 
   var isFirefox = navigator.userAgent.indexOf('Firefox') != -1;
+  var isSafari  = (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') < 0) ? true : false;
   var msgBuffer = [];
 
 
@@ -42,11 +43,15 @@
       data.data = prepSentData(data.data);
 
       if(data.type && data.data) {
-        var cdata = data.callerData;
+        var cdata = data.callerData,
+            trace;
         if(cdata) {
-          data.data.push('-- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.callerName ? '(function ' + cdata.callerName + ')' : ''));
+          trace = '-- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.callerName ? '(function ' + cdata.callerName + ')' : '');
         }
-        console[data.type].apply(console, data.data);
+
+        // style the output in `%c`-style. Does not work in Safari though
+        var toLog = isSafari ? data.data : stylize(data.data, trace);
+        console[data.type].apply(console, toLog);
       } else {
         console.log(data);
       }
@@ -154,5 +159,128 @@
   };
 
   connection.on('cmdResponse', nomo._response);
+
+
+  //
+  // -- Styling --
+  // 
+  // utilizes the `%c`-style formatting, which is supported in Firebug and Chrome.
+  // 
+  //
+
+  var 
+  theStyles = {
+    // styles
+    'text-decoration: none'         : '\033[24m', // reset
+    'font-weight: normal'           : '\033[22m', // reset
+    'font-weight: bold'             : '\033[1m',
+    'font-style: italic'            : '\033[3m',
+    'text-decoration: underline'    : '\033[4m',
+    'font-style: normal'            : '\033[23m',
+
+    //color
+    'color: '                       : '\033[39m', // reset
+    'color: white'                  : '\033[37m',
+    'color: grey'                   : '\033[90m',
+    'color: black'                  : '\033[37m',
+    'color: magenta'                : '\033[35m',
+    'color: yellow'                 : '\033[33m',
+    'color: red'                    : '\033[31m',
+    'color: cyan'                   : '\033[36m',
+    'color: blue'                   : '\033[34m',
+    'color: green'                  : '\033[32m'
+  },
+
+  traceStyle = 'color:grey; font-family:Helvetica, Arial, sans-serif',
+
+  // regular expressions
+  pattern           = /(\033\[.*?m)+/g,
+  formatPattern     = /%(s|d|i|o|f|c)/g;
+
+  function stylize(data, cdata) {
+    var formatSpecifiers = [],
+        exceedingArgs = 0,
+        cap,
+        txt;
+
+    if (data.length > 1) {
+      // check for format specifiers
+      txt = data[0];
+      while (cap = formatPattern.exec(txt)) {
+        formatSpecifiers.push(cap);
+      }
+    }
+
+    var argsl = data.length - 1; // length of additional arguments
+
+    // nasty hack when there are less specifiers than additional arguments (is handled differently in firebug and chrome)
+    // we add the remaining specifiers at the end of the data array.
+    if (formatSpecifiers.length > argsl) {
+      var remainingSpecifiers = formatSpecifiers.slice(argsl);
+      for (var j=0; j<remainingSpecifiers.length; j++) {
+        data.push(remainingSpecifiers[j][0]);
+      }
+    } else
+    // memorize number of arguments at the end, so we can add the caller data appropriately
+    if (formatSpecifiers.length < argsl) {
+      exceedingArgs = argsl - formatSpecifiers.length;
+    } else
+    if (!formatSpecifiers.length) {
+      data = [data.join('')];
+      txt = data[0];
+    }
+
+    var added = 0;
+    while (cap = pattern.exec(txt)) {
+
+      var styles = [],
+          capsplit = cap[0].split('m');
+
+      // get the needed styles
+      for (var i=0; i<capsplit.length; i++) {
+        for (var s in theStyles) {
+          if (theStyles[s] == capsplit[i] + 'm') {
+            styles.push(s);
+          }
+        }
+      }
+
+      // see if the style must be added before other specifiers
+      if (styles.length) {
+        var found;
+        for (i=0; i<formatSpecifiers.length; i++) {
+          sp = formatSpecifiers[i];
+          if (cap['index'] < sp['index']) {
+            found = i;
+            break;
+          }
+        }
+
+        // add at the right position
+        if (found !== undefined) {
+          pos = i + 1 + added;
+          data.splice(pos, 0, styles.join(';'));
+          added++;
+        } else {
+          data.push(styles.join(';'));
+        }
+
+        // replace with `%c`
+        data[0] = data[0].replace(cap[0], '%c');
+      }
+    }
+
+    // add caller data
+    if (cdata) {
+      if (exceedingArgs > 0) data[0] += data.splice(data.length - exceedingArgs).join('');
+      data[0] += '%c' + cdata;
+      data.push(traceStyle);
+    }
+
+    return data;
+  }
+
+
+
 
 })();
