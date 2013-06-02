@@ -204,6 +204,12 @@
         cap,
         txt;
 
+    // check now if we are just logging an object (@todo: check this also for multiple arguments)
+    if (data.length == 1 && _.isObject(data[0])) {
+      data.push(data[0]);
+      data[0] = '%o';
+    }
+
     if (data.length > 1) {
       // check for format specifiers
       txt = data[0];
