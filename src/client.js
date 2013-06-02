@@ -198,6 +198,7 @@
   formatPattern     = /%(s|d|i|o|f|c)/g;
 
   function stylize(data, cdata) {
+    
     var formatSpecifiers = [],
         exceedingArgs = 0,
         cap,
@@ -215,6 +216,10 @@
 
     // nasty hack when there are less specifiers than additional arguments (is handled differently in firebug and chrome)
     // we add the remaining specifiers at the end of the data array.
+    if (!formatSpecifiers.length) {
+      data = [data.join(' ')];
+      txt = data[0];
+    } else
     if (formatSpecifiers.length > argsl) {
       var remainingSpecifiers = formatSpecifiers.slice(argsl);
       for (var j=0; j<remainingSpecifiers.length; j++) {
@@ -224,10 +229,6 @@
     // memorize number of arguments at the end, so we can add the caller data appropriately
     if (formatSpecifiers.length < argsl) {
       exceedingArgs = argsl - formatSpecifiers.length;
-    } else
-    if (!formatSpecifiers.length) {
-      data = [data.join('')];
-      txt = data[0];
     }
 
     var added = 0;
@@ -276,7 +277,7 @@
       data[0] += '%c' + cdata;
       data.push(traceStyle);
     }
-
+    
     return data;
   }
 
