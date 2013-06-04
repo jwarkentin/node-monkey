@@ -62,7 +62,8 @@ _.extend(NodeMonkey.prototype, {
       overrideConsole: true,
       suppressOutput: true,
       saveOutput: true,
-      silent: false
+      silent: false,
+      clientSideStyles: true
     }, config || {});
 
     this.config.profiler = _.extend({
@@ -101,6 +102,7 @@ _.extend(NodeMonkey.prototype, {
     var stack = (new Error()).stack.toString().split('\n');
     var caller = stack[3]; // First line is just 'Error'
     var callerData = caller.match(/at (.*) \((.*):(.*):(.*)\)/);
+    var config = {clientSideStyles: this.config.clientSideStyles};
     if(!callerData) callerData = caller.match(/at ()(.*):(.*):(.*)/);
     callerData = {
       callerName: callerData[1],
@@ -112,7 +114,7 @@ _.extend(NodeMonkey.prototype, {
     // Send to open sockets if there is at least one, otherwise buffer
     var sendData = this.prepSendData(Array.prototype.slice.call(data));
 
-    var consoleData = {type: type, data: sendData, callerData: callerData};
+    var consoleData = {type: type, data: sendData, callerData: callerData, config: config};
     if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
       //this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);
