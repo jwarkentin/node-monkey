@@ -46,11 +46,17 @@
         var cdata = data.callerData,
             trace;
         if(cdata) {
-          trace = '-- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.callerName ? '(function ' + cdata.callerName + ')' : '');
+          trace = ' -- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.callerName ? '(function ' + cdata.callerName + ')' : '');
         }
 
-        // style the output in `%c`-style. Does not work in Safari though
-        var toLog = isSafari ? data.data : stylize(data.data, trace);
+        var toLog;
+        if (data.config && data.config.clientSideStyles && !isSafari) {
+          toLog = _stylize(data.data, trace);
+        } else {
+          toLog = data.data;
+          if (trace) toLog.push(trace);
+        }
+
         console[data.type].apply(console, toLog);
       } else {
         console.log(data);
@@ -168,35 +174,137 @@
   // 
   //
 
-  var 
+  var
   theStyles = {
     // styles
-    'text-decoration: none'         : '\033[24m', // reset
-    'font-weight: normal'           : '\033[22m', // reset
-    'font-weight: bold'             : '\033[1m',
-    'font-style: italic'            : '\033[3m',
-    'text-decoration: underline'    : '\033[4m',
-    'font-style: normal'            : '\033[23m',
+    '\033[24m'  : 'text-decoration: none',
+    '\033[22m'  : 'font-weight: normal',
+    '\033[1m'   :'font-weight: bold',
+    '\033[3m'   :'font-style: italic',
+    '\033[4m'   :'text-decoration: underline',
+    '\033[23m'  :'font-style: normal',
 
     //color
-    'color: '                       : '\033[39m', // reset
-    'color: white'                  : '\033[37m',
-    'color: grey'                   : '\033[90m',
-    'color: black'                  : '\033[37m',
-    'color: magenta'                : '\033[35m',
-    'color: yellow'                 : '\033[33m',
-    'color: red'                    : '\033[31m',
-    'color: cyan'                   : '\033[36m',
-    'color: blue'                   : '\033[34m',
-    'color: green'                  : '\033[32m'
+    '\033[39m'  :'color: '       ,
+    '\033[37m'  :'color: white'  ,
+    '\033[90m'  :'color: grey'   ,
+    '\033[30m'  :'color: black'  ,
+    '\033[35m'  :'color: magenta',
+    '\033[33m'  :'color: yellow' ,
+    '\033[31m'  :'color: red'    ,
+    '\033[36m'  :'color: cyan'   ,
+    '\033[34m'  :'color: blue'   ,
+    '\033[32m'  :'color: green'
   },
 
+  // Styles for the caller data.
   traceStyle = 'color:grey; font-family:Helvetica, Arial, sans-serif',
 
-  // regular expressions
+  // RegExp pattern for styles
   pattern           = /(\033\[.*?m)+/g,
-  formatPattern     = /%(s|d|i|o|f|c)/g;
+  // RegExp pattern for format specifiers (like '%o', '%s')
+  formatPattern     = /(?:^|[^%])%(s|d|i|o|f|c)/g;
 
+  function _stylize(data, cdata) {
+    // If `data` has multiple arguments, we are going to merge everything into
+    // the first argument, so style-specifiers can be used througout all arguments.
+
+    var cap,
+        mergeArgsStart = 1,
+        formatSpecifiers = [];
+
+    // If the first argument is an object, we need to replace it with `%o` 
+    // (always preemptively reset the color)
+    if (_.isObject(data[0])) {
+      data.splice(1, 0, data[0]);
+      data[0] = '\033[39m%o';
+    }
+
+    // Count all format specifiers in the first argument to see from where we need to
+    // start merging
+    while (cap = formatPattern.exec(data[0])) {
+        mergeArgsStart++;
+    }
+
+    // Start merging...
+    if (data.length > mergeArgsStart) {
+      for (var i=mergeArgsStart; i<data.length; i++) {
+        arg = data[i];
+        var specifier;
+
+        if (typeof arg == 'string') {
+          // Since this argument is a string and may be styled as well, put it right in...
+          specifier = ' ' + arg;
+          // ...and remove the argument...
+          data.splice(i, 1);
+          // ...and adapt the iterator.
+          i--;
+        } else {
+          // Otherwise use the '%o'-specifier (preemptively reset color)
+          specifier = ' \033[39m%o';
+        }
+
+        data[0] += specifier;
+      }
+    }
+
+    // Now let's collect all format specifiers and their positions as well,
+    // so we know where to put our style-specifiers.
+    while (cap = formatPattern.exec(data[0])) {
+      formatSpecifiers.push(cap);
+    }
+
+    var added = 0,
+        txt = data[0];
+
+    // Let's do some styling...
+    while (cap = pattern.exec(txt)) {
+
+      var styles = [],
+          capsplit = cap[0].split('m');
+
+      // Get the needed styles
+      for (var j=0; j<capsplit.length; j++) {
+        var s;
+        if (s = theStyles[capsplit[j] + 'm']) styles.push(s);
+      }
+
+      // Check if the style must be added before other specifiers
+      if (styles.length) {
+        var k;
+        for (k=0; k<formatSpecifiers.length; k++) {
+          sp = formatSpecifiers[k];
+          if (cap['index'] < sp['index']) {
+            break;
+          }
+        }
+
+        // Add them at the right position
+        pos = k + 1 + added;
+        data.splice(pos, 0, styles.join(';'));
+        added++;
+
+        // Replace original with `%c`-specifier
+        data[0] = data[0].replace(cap[0], '%c');
+      }
+    }
+    // ...done!
+
+    // At last, add caller data, if present.
+    if (cdata) {
+      data[0] += '%c' + cdata;
+      data.push(traceStyle);
+    }
+
+    return data;
+  }
+
+
+  /**
+   * 
+   * @deprecated
+   */ 
+  /*
   function stylize(data, cdata) {
     
     var formatSpecifiers = [],
@@ -286,7 +394,7 @@
     
     return data;
   }
-
+  */
 
 
 
