@@ -50,7 +50,7 @@
         }
 
         var toLog;
-        if (data.config && data.config.clientSideStyles && !isSafari) {
+        if (data.type == 'log' && data.config && data.config.clientSideStyles && !isSafari) {
           toLog = _stylize(data.data, trace);
         } else {
           toLog = data.data;
@@ -169,9 +169,9 @@
 
   //
   // -- Styling --
-  // 
+  //
   // utilizes the `%c`-style formatting, which is supported in Firebug and Chrome.
-  // 
+  //
   //
 
   var
@@ -207,13 +207,13 @@
 
   function _stylize(data, cdata) {
     // If `data` has multiple arguments, we are going to merge everything into
-    // the first argument, so style-specifiers can be used througout all arguments.
+    // the first argument, so style-specifiers can be used throughout all arguments.
 
     var cap,
         mergeArgsStart = 1,
         formatSpecifiers = [];
 
-    // If the first argument is an object, we need to replace it with `%o` 
+    // If the first argument is an object, we need to replace it with `%o`
     // (always preemptively reset the color)
     if (_.isObject(data[0])) {
       data.splice(1, 0, data[0]);
@@ -298,104 +298,5 @@
 
     return data;
   }
-
-
-  /**
-   * 
-   * @deprecated
-   */ 
-  /*
-  function stylize(data, cdata) {
-    
-    var formatSpecifiers = [],
-        exceedingArgs = 0,
-        cap,
-        txt;
-
-    // check now if we are just logging an object (@todo: check this also for multiple arguments)
-    if (data.length == 1 && _.isObject(data[0])) {
-      data.push(data[0]);
-      data[0] = '%o';
-    }
-
-    if (data.length > 1) {
-      // check for format specifiers
-      txt = data[0];
-      while (cap = formatPattern.exec(txt)) {
-        formatSpecifiers.push(cap);
-      }
-    }
-
-    var argsl = data.length - 1; // length of additional arguments
-
-    // nasty hack when there are less specifiers than additional arguments (is handled differently in firebug and chrome)
-    // we add the remaining specifiers at the end of the data array.
-    if (!formatSpecifiers.length) {
-      data = [data.join(' ')];
-      txt = data[0];
-    } else
-    if (formatSpecifiers.length > argsl) {
-      var remainingSpecifiers = formatSpecifiers.slice(argsl);
-      for (var j=0; j<remainingSpecifiers.length; j++) {
-        data.push(remainingSpecifiers[j][0]);
-      }
-    } else
-    // memorize number of arguments at the end, so we can add the caller data appropriately
-    if (formatSpecifiers.length < argsl) {
-      exceedingArgs = argsl - formatSpecifiers.length;
-    }
-
-    var added = 0;
-    while (cap = pattern.exec(txt)) {
-
-      var styles = [],
-          capsplit = cap[0].split('m');
-
-      // get the needed styles
-      for (var i=0; i<capsplit.length; i++) {
-        for (var s in theStyles) {
-          if (theStyles[s] == capsplit[i] + 'm') {
-            styles.push(s);
-          }
-        }
-      }
-
-      // see if the style must be added before other specifiers
-      if (styles.length) {
-        var found;
-        for (i=0; i<formatSpecifiers.length; i++) {
-          sp = formatSpecifiers[i];
-          if (cap['index'] < sp['index']) {
-            found = i;
-            break;
-          }
-        }
-
-        // add at the right position
-        if (found !== undefined) {
-          pos = i + 1 + added;
-          data.splice(pos, 0, styles.join(';'));
-          added++;
-        } else {
-          data.push(styles.join(';'));
-        }
-
-        // replace with `%c`
-        data[0] = data[0].replace(cap[0], '%c');
-      }
-    }
-
-    // add caller data
-    if (cdata) {
-      if (exceedingArgs > 0) data[0] += data.splice(data.length - exceedingArgs).join('');
-      data[0] += '%c' + cdata;
-      data.push(traceStyle);
-    }
-    
-    return data;
-  }
-  */
-
-
 
 })();
