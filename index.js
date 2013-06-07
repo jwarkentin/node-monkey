@@ -204,7 +204,7 @@ _.extend(NodeMonkey.prototype, {
       } else if(req.url == '/cycle.js') {
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
       } else if(req.url == '/lodash.js') {
-        res.end(fs.readFileSync(__dirname + '/node_modules/lodash/lodash.js'));
+        res.end(fs.readFileSync(require.resolve('lodash')));
       } else {
         res.end(clientHTML());
       }
