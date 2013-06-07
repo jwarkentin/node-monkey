@@ -28,6 +28,8 @@ console.log({
 
 console.dir({test: 'hi', test1: {nested: 'object'}, test2: function() { alert('hi'); }});
 
+console.log('\033[32mgreen test, %cred test, %o, \033[34mblue test', 'color:red', {test: 'object'});
+
 
 //
 // -- Test profiling --

@@ -201,7 +201,7 @@
   traceStyle = 'color:grey; font-family:Helvetica, Arial, sans-serif',
 
   // RegExp pattern for styles
-  pattern           = /(\033\[.*?m)+/g,
+  stylePattern      = /(\033\[.*?m)+/g,
   // RegExp pattern for format specifiers (like '%o', '%s')
   formatPattern     = /(?:^|[^%])%(s|d|i|o|f|c)/g;
 
@@ -228,9 +228,9 @@
 
     // Start merging...
     if (data.length > mergeArgsStart) {
-      for (var i=mergeArgsStart; i<data.length; i++) {
-        arg = data[i];
-        var specifier;
+      for (var i = mergeArgsStart; i < data.length; i++) {
+        var arg = data[i],
+            specifier;
 
         if (typeof arg == 'string') {
           // Since this argument is a string and may be styled as well, put it right in...
@@ -258,13 +258,13 @@
         txt = data[0];
 
     // Let's do some styling...
-    while (cap = pattern.exec(txt)) {
+    while (cap = stylePattern.exec(txt)) {
 
       var styles = [],
           capsplit = cap[0].split('m');
 
       // Get the needed styles
-      for (var j=0; j<capsplit.length; j++) {
+      for (var j = 0; j < capsplit.length; j++) {
         var s;
         if (s = theStyles[capsplit[j] + 'm']) styles.push(s);
       }
@@ -272,15 +272,15 @@
       // Check if the style must be added before other specifiers
       if (styles.length) {
         var k;
-        for (k=0; k<formatSpecifiers.length; k++) {
-          sp = formatSpecifiers[k];
+        for (k = 0; k < formatSpecifiers.length; k++) {
+          var sp = formatSpecifiers[k];
           if (cap['index'] < sp['index']) {
             break;
           }
         }
 
         // Add them at the right position
-        pos = k + 1 + added;
+        var pos = k + 1 + added;
         data.splice(pos, 0, styles.join(';'));
         added++;
 
