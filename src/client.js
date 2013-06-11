@@ -1,5 +1,5 @@
 (function() {
-
+  
   //
   // - Global Variabls -
   //
@@ -177,31 +177,31 @@
   var
   theStyles = {
     // styles
-    '\033[24m'  : 'text-decoration: none',
-    '\033[22m'  : 'font-weight: normal',
-    '\033[1m'   :'font-weight: bold',
-    '\033[3m'   :'font-style: italic',
-    '\033[4m'   :'text-decoration: underline',
-    '\033[23m'  :'font-style: normal',
+    '\u001b[24m'  : 'text-decoration: none',
+    '\u001b[22m'  : 'font-weight: normal',
+    '\u001b[1m'   :'font-weight: bold',
+    '\u001b[3m'   :'font-style: italic',
+    '\u001b[4m'   :'text-decoration: underline',
+    '\u001b[23m'  :'font-style: normal',
 
     //color
-    '\033[39m'  :'color: '       ,
-    '\033[37m'  :'color: white'  ,
-    '\033[90m'  :'color: grey'   ,
-    '\033[30m'  :'color: black'  ,
-    '\033[35m'  :'color: magenta',
-    '\033[33m'  :'color: yellow' ,
-    '\033[31m'  :'color: red'    ,
-    '\033[36m'  :'color: cyan'   ,
-    '\033[34m'  :'color: blue'   ,
-    '\033[32m'  :'color: green'
+    '\u001b[39m'  :'color: '       ,
+    '\u001b[37m'  :'color: white'  ,
+    '\u001b[90m'  :'color: grey'   ,
+    '\u001b[30m'  :'color: black'  ,
+    '\u001b[35m'  :'color: magenta',
+    '\u001b[33m'  :'color: yellow' ,
+    '\u001b[31m'  :'color: red'    ,
+    '\u001b[36m'  :'color: cyan'   ,
+    '\u001b[34m'  :'color: blue'   ,
+    '\u001b[32m'  :'color: green'
   },
 
   // Styles for the caller data.
   traceStyle = 'color:grey; font-family:Helvetica, Arial, sans-serif',
 
   // RegExp pattern for styles
-  stylePattern      = /(\033\[.*?m)+/g,
+  stylePattern      = /(\u001b\[.*?m)+/g,
   // RegExp pattern for format specifiers (like '%o', '%s')
   formatPattern     = /(?:^|[^%])%(s|d|i|o|f|c)/g;
 
@@ -217,14 +217,20 @@
     // (always preemptively reset the color)
     if (_.isObject(data[0])) {
       data.splice(1, 0, data[0]);
-      data[0] = '\033[39m%o';
+      data[0] = '%o';
     }
 
     // Count all format specifiers in the first argument to see from where we need to
     // start merging
-    while (cap = formatPattern.exec(data[0])) {
+    var txt = data[0];
+    while (cap = formatPattern.exec(txt)) {
+        if (cap[1] == 'o') {
+          // Insert color resetter
+          data[0] = data[0].replace(cap[0], cap[0].slice(0, cap[0].length -2) + '\u001b[39m%o');
+        }
         mergeArgsStart++;
     }
+
 
     // Start merging...
     if (data.length > mergeArgsStart) {
@@ -241,7 +247,7 @@
           i--;
         } else {
           // Otherwise use the '%o'-specifier (preemptively reset color)
-          specifier = ' \033[39m%o';
+          specifier = ' \u001b[39m%o';
         }
 
         data[0] += specifier;
@@ -254,8 +260,8 @@
       formatSpecifiers.push(cap);
     }
 
-    var added = 0,
-        txt = data[0];
+    var added = 0;
+    txt = data[0];
 
     // Let's do some styling...
     while (cap = stylePattern.exec(txt)) {
