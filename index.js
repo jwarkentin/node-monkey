@@ -214,7 +214,11 @@ _.extend(NodeMonkey.prototype, {
     this.iosrv.set('log level', 1);
     this.iosrv.enable('browser client minification');
     this.iosrv.enable('browser client etag');
-    this.iosrv.enable('browser client gzip');
+
+    // See github issues #8 and #13
+    if(!process.platform.match(/^win/)) {
+      this.iosrv.enable('browser client gzip');
+    }
 
     this.iosrv.sockets.on('connection', function(socket) {
       that.trySendBuffer();
