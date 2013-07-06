@@ -1,3 +1,8 @@
+Version 0.2.8
+-------------
+- Fix crashing bug in Windows (workaround for socket.io bug)
+- Convert bash formatting escape sequences to matching JS console styles (disable with new `convertStyles` option)
+
 Version 0.2.7
 -------------
 - New `overrideConsole` option to disable overriding the console functions when starting NodeMonkey

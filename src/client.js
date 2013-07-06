@@ -1,5 +1,5 @@
 (function() {
-  
+
   //
   // - Global Variabls -
   //
@@ -50,7 +50,7 @@
         }
 
         var toLog;
-        if (data.type == 'log' && data.config && data.config.clientSideStyles && !isSafari) {
+        if (data.type == 'log' && data.config && data.config.convertStyles && !isSafari) {
           toLog = _stylize(data.data, trace);
         } else {
           toLog = data.data;

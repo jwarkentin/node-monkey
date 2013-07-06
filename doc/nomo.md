@@ -15,6 +15,7 @@ Set/Reset config options.
     * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
     * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
     * **silent**: If `true` then nothing will be logged to the console when started. Default is `false`.
+    * **convertStyles**: Whether to convert style related terminal escape sequences to corresponding JS console styles. Default is `true`.
 
 ## nomo.start([options])
 Start the NodeMonkey server so the browser client can connect.
