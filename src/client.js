@@ -80,7 +80,7 @@
   connection.on('connect', function() {
     logMsg(' ');
     logMsg(' /--------------------\\');
-    logMsg('  Welcome to NodeMokey');
+    logMsg('  Welcome to NodeMonkey');
     logMsg(' \\--------------------/');
   });
 
