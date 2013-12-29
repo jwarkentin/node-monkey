@@ -1,0 +1,127 @@
+#!/usr/bin/env node
+
+// Must be setup before 'auth' or any other modules that try to use the logger are included
+var logger = require(__dirname + '/../src/logger.js');
+logger.addConsoleLog({level: 'info'});
+
+var prompt = require('prompt'),
+    _ = require('lodash'),
+    path = require('path'),
+    auth = require(__dirname + '/../src/srvauth.js');
+
+
+var args = require('optimist')
+    .usage('Manage Node Monkey users\n\nUsage: user (add|del|pwd|test) [user]\n\n\
+Commands:\n\
+  add\tAdd user\n\
+  del\tDelete user\n\
+  pwd\tSet password for user\n\
+  test\tTest a user password to make sure auth works')
+    .demand(['f'])
+    .alias('f', 'file')
+    .describe('f', 'Location of the Scrypt auth file that contains the users to manage')
+    .check(function(args) {
+      if(args._.length != 2) {
+        throw new Error("You must specify a command and user");
+      }
+    })
+    .argv;
+
+prompt.colors = false;
+prompt.message = '';
+prompt.delimiter = '';
+
+function promptPwd(confirm, cb) {
+  if(_.isFunction(confirm) && !cb) {
+    cb = confirm;
+    confirm = undefined;
+  }
+
+  var schema = {
+    properties: {
+      password: {
+        description: 'Password:',
+        hidden: true
+      }
+    }
+  };
+
+  if(confirm) {
+    schema.properties.confirmPassword = {
+      description: 'Confirm Password:',
+      hidden: true
+    };
+  }
+
+  prompt.start();
+  prompt.get(schema, function(err, result) {
+    // As far as I know this only happens when 'ctrl+c' is pressed
+    if(!result) {
+      console.log('');
+      return;
+    }
+
+    var errMsg = null;
+    if(!result.password) {
+      errMsg = 'No password given. Password cannot be empty.';
+    }
+
+    if(confirm && result.password != result.confirmPassword) {
+      errMsg = 'The given passwords do not match';
+    }
+
+    cb(errMsg, errMsg ? undefined : result.password);
+  });
+}
+
+
+var userManager = new auth({
+      scryptAuthFile: path.resolve(args.file)
+    }),
+    cmd = args._[0],
+    user = args._[1];
+
+function doneFn(err) {
+  if(err) {
+    console.log('[Error] ' + err.message);
+    process.exit(1);
+  }
+}
+
+if(cmd == 'add' || cmd == 'pwd') {
+  promptPwd(true, function(errMsg, password) {
+    if(errMsg) {
+      console.error('[Error] ' + errMsg);
+      process.exit(1);
+    }
+
+    if(cmd == 'add') {
+      userManager.addUser(user, password, doneFn);
+    } else if(cmd == 'pwd') {
+      userManager.setPwd(user, password, doneFn);
+    }
+  });
+} else if(cmd == 'del') {
+  userManager.delUser(user, doneFn);
+} else if(cmd == 'test') {
+  promptPwd(false, function(errMsg, password) {
+    if(errMsg) {
+      console.error('[Error] ' + errMsg);
+      process.exit(1);
+    }
+
+    userManager.authUser(user, password, function(err, result) {
+      if(result) {
+        console.log('Auth successful!');
+      }
+
+      // It is not normally a good idea to dump out the authentication error as we don't want to inform attackers why their auth
+      // attempts are failing, however, for testing purposes we will.
+      if(err) {
+        console.error("[Auth Error] " + err);
+      }
+    });
+  });
+} else {
+  console.error("[Error] Unrecognized command '" + cmd + "'");
+}

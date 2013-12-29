@@ -2,8 +2,8 @@
     "author": "Justin Warkentin <justin.warkentin@gmail.com>",
     "name": "node-monkey",
 
-    "version": "0.2.8",
-    "description": "A Node.js module for inspecting, profiling and debugging Node.js applications through a web browser",
+    "version": "0.3.0",
+    "description": "A Node.js module for inspecting, profiling, debugging and interfacing with Node.js applications",
     "keywords": ["inspect", "debug", "debugging", "console", "log", "profile", "profiler"],
     "homepage": "https://github.com/jwarkentin/node-monkey",
     "bugs": "https://github.com/jwarkentin/node-monkey/issues",
@@ -13,7 +13,24 @@
         "url": "https://github.com/jwarkentin/node-monkey.git"
     },
     "dependencies": {
+        "async": "*",
+        "cycle": ">= 1.0.3",
+        "express": "3.x",
+        "jquery": "*",
         "lodash": "*",
-        "socket.io": "*"
+        "requirejs": "2.1.x",
+        "scrypt": "*",
+        "socket.io": "0.9.x",
+        "ssh": "*",
+        "underscore.deferred": "*",
+        "underscore.string": "*",
+        "winston": "*",
+
+        "//": "These are only used for utilities in the bin directory right now",
+        "optimist": "*",
+        "prompt": "*",
+    },
+    "optionalDependencies": {
+        "authenticate-pam": "*"
     }
 }

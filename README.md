@@ -1,9 +1,9 @@
-NodeMonkey
+Node Monkey
 ==========
 
 A Node.js module for inspecting and debugging Node.js applications through a web browser
 
-NodeMonkey runs a simple server and uses [Socket.IO](https://github.com/LearnBoost/socket.io) to create a websocket connection between the browser and server.
+Node Monkey runs a simple server and uses [Socket.IO](https://github.com/LearnBoost/socket.io) to create a websocket connection between the browser and server.
 It captures anything that would normally be logged to the terminal, converts it to JSON and passes it to the browser where it is then logged to the console for inspection.
 
 Version 0.2.0 also introduces code profiling functionality and the ability to send commands to your Node.js application from your web browser.  
@@ -19,7 +19,18 @@ This would entirely mess up my debugging efforts. All I really needed to do was 
 I searched Google and found projects like [node-inspector](https://github.com/dannycoates/node-inspector), which doesn't work with the latest versions of Node, and [node-codein](http://thomashunter.name/blog/nodejs-console-object-debug-inspector/) which has many bugs.
 And neither works with Firefox.
 
-So NodeMonkey was born!
+So Node Monkey was born!
+
+Features
+--------
+
+- Have all output dumped to browser console for easier inspection
+- Code profiler
+- Command interface for control and inspection while your app is running
+  - Register your own custom commands
+  - Execute commands from the browser console
+  - SSH to your app and execute commands
+- Proper authentication to make it safe to include Node Monkey in production code and use it as a command interface for you app
 
 Compatibility
 -------------
@@ -29,6 +40,16 @@ Any browser with a Javasript console and websocket support!
 Installation
 ------------
 
+These packages are only required if you want SSH support (optional dependency)
+```
+apt-get install libkrb5-dev libssl-dev
+```
+
+This is required if you want to be able to authenticate with system users. The `authenticate-pam` module won't install without this.
+```
+apt-get install libpam0g-dev
+```
+
 ```
 npm install node-monkey
 ```
@@ -36,7 +57,7 @@ npm install node-monkey
 A note on security
 ------------------
 
-NodeMonkey is primarily designed for debugging and for now should only be used for such. I haven't implemented any sort of authorization
+Node Monkey is primarily designed for debugging and for now should only be used for such. I haven't implemented any sort of authorization
 to prevent anyone from gaining access to the data that is dumped out. If you are concerned about other's potentially gaining access while
 you are debugging, you should change the `host` from `0.0.0.0` to something more secure like `127.0.0.1`. Definitely don't include it in
 production code before authorization is in place, and even then it's debatable whether there's a good reason.
@@ -45,13 +66,13 @@ Complete Documentation
 ----------------------
 To get a quick start see the limited examples below. For complete documentation see the following links:
 
-* [NodeMonkey API](doc/nomo.md)
+* [Node Monkey API](doc/nomo.md)
 * [Profiler API](doc/profiler.md)
 
 Quick Usage
 -----------
 
-Using NodeMonkey is extremely easy.
+Using Node Monkey is extremely easy.
 All you have to do is include the following line in your Node.js application.
 Anything that is logged to the console after this will show up in the browser console once connected.
 It captures all output to `console.log()`, `console.warn()` and `console.error()`.
@@ -81,7 +102,7 @@ Options
 
 * **host**: The host network interface to bind to. Default is `0.0.0.0` which means ALL interfaces.
 * **port**: The port to listen on. Default is `50500`.
-* **overrideConsole**: Set this to `false` to prevent NodeMonkey from overriding the console functions when you start it. You can call `nomo.replaceConsole()` any time to override the console functions and `nomo.revertConsole()` to change it back. Default is `true`.
+* **overrideConsole**: Set this to `false` to prevent Node Monkey from overriding the console functions when you start it. You can call `nomo.replaceConsole()` any time to override the console functions and `nomo.revertConsole()` to change it back. Default is `true`.
 * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
 * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
 * **silent**: If `true` then nothing will be logged to the console when started. Default is `false`.
@@ -91,7 +112,7 @@ Options
 * **profiler**: This is a nested object of options for the profiler. It's options are listed below.
 
     ### Profiler Options
-    * **active**: If `true`, the profiler will be enabled when NodeMonkey is included. Defaults to `true`.
+    * **active**: If `true`, the profiler will be enabled when Node Monkey is included. Defaults to `true`.
                   Note that it doesn't matter what this is set to if you never call any profiler functions.
 -->
 
@@ -126,27 +147,6 @@ Dependencies
 * [Socket.IO](https://github.com/LearnBoost/socket.io)
 * [Lo-Dash](https://github.com/bestiejs/lodash)
 
-## LICENSE - "MIT License"
+## LICENSE
 
-Copyright (c) 2012 Justin Warkentin
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+This code is licensed under the MIT License. See the [license](LICENSE.md).

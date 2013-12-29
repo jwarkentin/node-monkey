@@ -1,0 +1,61 @@
+.connected {
+    color: #080;
+}
+
+.disconnected {
+    color: #F00;
+}
+
+.connecting {
+    color: #F90;
+}
+
+
+.error {
+    color: #F00;
+}
+
+
+#pwd-prompt {
+    display: none;
+    position: absolute;
+    top: 50%; left: 50%; right: auto; bottom: auto;
+    border: 1px solid #999;
+    border-radius: 5px;
+    background-color: #AAA;
+    box-shadow: 0 0 5px rgba(0, 0, 0, .5);
+    padding: 10px;
+    white-space: nowrap;
+}
+
+#pwd-prompt .field-label {
+    display: inline-block;
+    margin: 3px 5px;
+    font-size: 12pt;
+    font-family: monospace;
+}
+
+#pwd-prompt .field {
+    display: inline-block;
+    margin: 3px 5px;
+}
+
+#pwd-prompt #login-btn {
+    float: right;
+}
+#pwd-prompt .auth-error-wrapper {
+    display: none;
+    text-align: center;
+}
+
+#pwd-prompt .auth-error {
+    font-size: 11pt;
+    display: inline-block;
+    clear: both;
+    margin-bottom: 5px;
+    padding: 3px 5px;
+    border: 1px solid #EED3D7;
+    border-radius: 3px;
+    background-color: #F2DEDE;
+    color: #B94A48;
+}

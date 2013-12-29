@@ -1,4 +1,4 @@
-# NodeMonkey API
+# Node Monkey API
 Assuming:
 ```js
 var nomo = require('node-monkey');
@@ -11,19 +11,19 @@ Set/Reset config options.
 * **config**: An object with the options you want to set/change. Valid options are as follows:
     * **host**: The host network interface to bind to. Default is `0.0.0.0` which means ALL interfaces.
     * **port**: The port to listen on. Default is `50500`.
-    * **overrideConsole**: Set this to `false` to prevent NodeMonkey from overriding the console functions when you start it. You can call `nomo.replaceConsole()` any time to override the console functions and `nomo.revertConsole()` to change it back. Default is `true`.
+    * **overrideConsole**: Set this to `false` to prevent Node Monkey from overriding the console functions when you start it. You can call `nomo.replaceConsole()` any time to override the console functions and `nomo.revertConsole()` to change it back. Default is `true`.
     * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
     * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
     * **silent**: If `true` then nothing will be logged to the console when started. Default is `false`.
     * **convertStyles**: Whether to convert style related terminal escape sequences to corresponding JS console styles. Default is `true`.
 
 ## nomo.start([options])
-Start the NodeMonkey server so the browser client can connect.
+Start the Node Monkey server so the browser client can connect.
 
 * **options**: These are the same as the `config` options above. This is just for convenience so you can pass them in when starting the server. In most cases though you won't need to change anything from the defaults so you shouldn't need to call `setConfig()` or pass any `options` in.
 
 ## nomo.stop()
-Stop the NodeMonkey server. This will disconnect any browser client's that are listening.
+Stop the Node Monkey server. This will disconnect any browser client's that are listening.
 
 ## nomo.registerCommand(options)
 You can register any command you'd like to run any function you'd like through this method. It is recommended, but not required, to namespace your commands (e.g. 'mynamespace.mycommand').
