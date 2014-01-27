@@ -12,6 +12,7 @@
         "type": "git",
         "url": "https://github.com/jwarkentin/node-monkey.git"
     },
+    "//": "optimist and prompt are only used for utilities in the bin directory right now",
     "dependencies": {
         "async": "*",
         "cycle": ">= 1.0.3",
@@ -26,7 +27,6 @@
         "underscore.string": "*",
         "winston": "*",
 
-        "//": "These are only used for utilities in the bin directory right now",
         "optimist": "*",
         "prompt": "*"
     },
