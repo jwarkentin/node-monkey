@@ -28,7 +28,7 @@
 
         "//": "These are only used for utilities in the bin directory right now",
         "optimist": "*",
-        "prompt": "*",
+        "prompt": "*"
     },
     "optionalDependencies": {
         "authenticate-pam": "*"
