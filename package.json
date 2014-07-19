@@ -2,7 +2,7 @@
     "author": "Justin Warkentin <justin.warkentin@gmail.com>",
     "name": "node-monkey",
 
-    "version": "0.2.8",
+    "version": "0.2.9",
     "description": "A Node.js module for inspecting, profiling and debugging Node.js applications through a web browser",
     "keywords": ["inspect", "debug", "debugging", "console", "log", "profile", "profiler"],
     "homepage": "https://github.com/jwarkentin/node-monkey",
@@ -14,6 +14,6 @@
     },
     "dependencies": {
         "lodash": "*",
-        "socket.io": "*"
+        "socket.io": "0.9.x"
     }
 }
