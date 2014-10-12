@@ -258,9 +258,10 @@ _.extend(NodeMonkey.prototype, {
     }
 
     if(!this.config.silent) {
+      var openHost = this.config.host == '0.0.0.0' || this.config.host == '::' ? '127.0.0.1' : this.config.host;
       this.clog('------------------');
       this.clog('NodeMonkey started');
-      this.clog('To inspect output, open a browser to: http://' + this.config.host + ':' + this.config.port);
+      this.clog('To inspect output, open a browser to: http://' + openHost + ':' + this.config.port);
       this.clog('------------------');
       this.clog(' ');
     }
