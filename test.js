@@ -1,5 +1,7 @@
 var clog = console.log;
-var nomo = require('./index.js').start();
+var nomo = require('./index.js').start({
+  suppressOutput: false
+});
 nomo.profiler.start();
 
 

@@ -6,6 +6,7 @@
 
   var isFirefox = navigator.userAgent.indexOf('Firefox') != -1;
   var isSafari  = (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') < 0) ? true : false;
+  var saveOutput = <%= saveOutput %>;
   var msgBuffer = [];
 
 
@@ -36,10 +37,12 @@
   }
 
   function logMsg(data) {
-    if(isFirefox && !window.console.exception) {
+    if(saveOutput && isFirefox && !window.console.exception) {
       msgBuffer.push(data);
+      if(msgBuffer.length > <%= clientMaxBuffer %>) {
+        msgBuffer.shift();
+      }
     } else {
-
       data.data = prepSentData(data.data);
 
       if(data.type && data.data) {
@@ -69,7 +72,7 @@
   // - Websocket connection -
   //
 
-  var host = location.protocol + '//<%= nomoHost %>:' + <%= nomoPort %>;
+  var host = location.protocol + '//' + location.hostname + ':' + <%= nomoPort %>;
   var connection = io.connect(host, {
     'reconnect': true,
     'connect timeout': 4000,
@@ -101,7 +104,7 @@
   //
   // The method to detect if Firebug is open may change. Look for changes here:
   //   http://stackoverflow.com/questions/398111/javascript-that-detects-firebug
-  if(isFirefox) {
+  if(saveOutput && isFirefox) {
     var logInterval = setInterval(function() {
       if(msgBuffer.length && window.console.exception) {
         for(var i = 0; i < msgBuffer.length; i++) {

@@ -63,7 +63,8 @@ _.extend(NodeMonkey.prototype, {
       suppressOutput: true,
       saveOutput: true,
       silent: false,
-      convertStyles: true
+      convertStyles: true,
+      clientMaxBuffer: 50
     }, config || {});
 
     this.config.profiler = _.extend({
@@ -129,7 +130,7 @@ _.extend(NodeMonkey.prototype, {
     // Dump to console if requested
     if(!this.config.suppressOutput) {
       var msgFunc = 'c' + type;
-      if(this[msgFunc]) this[msgFunc].apply(console, arguments);
+      if(this[msgFunc]) this[msgFunc].apply(console, data);
     }
   },
 
@@ -200,7 +201,12 @@ _.extend(NodeMonkey.prototype, {
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(req.url == '/client.js') {
-        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {nomoHost: that.config.host, nomoPort: that.config.port}));
+        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {
+          nomoHost: that.config.host,
+          nomoPort: that.config.port,
+          saveOutput: that.config.saveOutput,
+          clientMaxBuffer: that.config.clientMaxBuffer
+        }));
       } else if(req.url == '/cycle.js') {
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
       } else if(req.url == '/lodash.js') {
