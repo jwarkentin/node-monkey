@@ -81,10 +81,12 @@
   });
 
   connection.on('connect', function() {
-    logMsg(' ');
-    logMsg(' /--------------------\\');
-    logMsg('  Welcome to NodeMonkey');
-    logMsg(' \\--------------------/');
+    if(!<%= silentMode %>) {
+      logMsg(' ');
+      logMsg(' /--------------------\\');
+      logMsg('  Welcome to NodeMonkey');
+      logMsg(' \\--------------------/');
+    }
   });
 
   connection.on('reconnecting', function(delay, attempts) {

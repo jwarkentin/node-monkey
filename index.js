@@ -201,22 +201,27 @@ _.extend(NodeMonkey.prototype, {
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(req.url == '/client.js') {
+        res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
         res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {
+          silentMode: that.config.silent,
           nomoHost: that.config.host,
           nomoPort: that.config.port,
           saveOutput: that.config.saveOutput,
           clientMaxBuffer: that.config.clientMaxBuffer
         }));
       } else if(req.url == '/cycle.js') {
+        res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
         res.end(fs.readFileSync(__dirname + '/src' + req.url));
       } else if(req.url == '/lodash.js') {
+        res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
         res.end(fs.readFileSync(require.resolve('lodash')));
       } else {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.end(clientHTML());
       }
     }).listen(this.config.port, this.config.host);
 
-    this.iosrv = socketIO.listen(this.srv);
+    this.iosrv = socketIO.listen(this.srv, {log: !this.config.silent});
     this.iosrv.set('log level', 1);
     this.iosrv.enable('browser client minification');
     this.iosrv.enable('browser client etag');
