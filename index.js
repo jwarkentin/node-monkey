@@ -103,7 +103,7 @@ _.extend(NodeMonkey.prototype, {
     var stack = (new Error()).stack.toString().split('\n');
     var caller = stack[3]; // First line is just 'Error'
     var callerData = caller.match(/at (.*) \((.*):(.*):(.*)\)/);
-    var config = {convertStyles: this.config.clientSideStyles};
+    var config = {convertStyles: this.config.convertStyles};
     if(!callerData) callerData = caller.match(/at ()(.*):(.*):(.*)/);
     callerData = {
       callerName: callerData[1],
