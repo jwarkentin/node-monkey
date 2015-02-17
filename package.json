@@ -20,7 +20,7 @@
     "url": "https://github.com/jwarkentin/node-monkey.git"
   },
   "dependencies": {
-    "lodash": "*",
+    "lodash": "2.x",
     "socket.io": "0.9.x"
   }
 }
