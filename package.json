@@ -1,7 +1,7 @@
 {
   "author": "Justin Warkentin <justin.warkentin@gmail.com>",
   "name": "node-monkey",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "A Node.js module for inspecting, profiling and debugging Node.js applications through a web browser",
   "keywords": [
     "inspect",
