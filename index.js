@@ -23,6 +23,45 @@ function NodeMonkey() {
 
   this.profiler = new profiler();
 
+
+  // ================== //
+  // - Bunyan Support - //
+  // ================== //
+
+  var BUNYAN_TRACE = 10;
+  var BUNYAN_DEBUG = 20;
+  var BUNYAN_INFO = 30;
+  var BUNYAN_WARN = 40;
+  var BUNYAN_ERROR = 50;
+  var BUNYAN_FATAL = 60;
+
+  var levelFromName = {
+        'trace': BUNYAN_TRACE,
+        'debug': BUNYAN_DEBUG,
+        'info': BUNYAN_INFO,
+        'warn': BUNYAN_WARN,
+        'error': BUNYAN_ERROR,
+        'fatal': BUNYAN_FATAL
+      },
+      nameFromLevel = _.invert(levelFromName);
+
+  this.stream = {
+    write: function(rec) {
+      rec = JSON.parse(rec);
+      that.consoleMsg(
+        nameFromLevel[rec.level] || 'info',
+        [ rec.msg, rec ],
+
+        // TODO: The stack offset could be more dynamic if it looked for the first call that didn't originate in bunyan.js.
+        //       If this route is pursued in the future, it should cache it so it only has to search for the offset the first time.
+        { stackOffset: 5, sendCallerData: Boolean(rec.src) }
+      );
+    }
+  };
+
+  // -- End Bunyan Support -- //
+
+
   this.registerCommand({
     cmd: 'profiler.start',
     callback: that.profiler.start,
@@ -61,8 +100,9 @@ _.extend(NodeMonkey.prototype, {
       port: '50500',
       overrideConsole: true,
       suppressOutput: true,
-      saveOutput: true,
+      saveOutput: false,
       silent: false,
+      showCallerInfo: true,
       convertStyles: true,
       clientMaxBuffer: 50
     }, config || {});
@@ -96,26 +136,32 @@ _.extend(NodeMonkey.prototype, {
     return sendData;
   },
 
-  consoleMsg: function(type, data) {
-    var that = this;
+  consoleMsg: function(type, data, options) {
+    options = _.extend({
+      stackOffset: 3,
+      sendCallerData: this.config.showCallerInfo
+    }, options || {});
 
     // Capture file and line number of caller. Unfortunately, the API doesn't seem to allow it, so instead we'll just have to parse it out.
-    var stack = (new Error()).stack.toString().split('\n');
-    var caller = stack[3]; // First line is just 'Error'
-    var callerData = caller.match(/at (.*) \((.*):(.*):(.*)\)/);
-    var config = {convertStyles: this.config.convertStyles};
-    if(!callerData) callerData = caller.match(/at ()(.*):(.*):(.*)/);
-    callerData = {
-      callerName: callerData[1],
-      file: callerData[2],
-      line: parseInt(callerData[3]),
-      column: parseInt(callerData[4])
-    };
+    var callerData;
+    if(options.sendCallerData) {
+      var stack = (new Error()).stack.toString().split('\n'),
+          caller = stack[options.stackOffset]; // First line is just 'Error'
+          callerData = caller.match(/at (.*) \((.*):(.*):(.*)\)/) || caller.match(/at ()(.*):(.*):(.*)/);
+
+      callerData = {
+        callerName: callerData[1],
+        file: callerData[2],
+        line: parseInt(callerData[3]),
+        column: parseInt(callerData[4])
+      };
+    }
+
+    var config = {convertStyles: this.config.convertStyles},
+        sendData = this.prepSendData(Array.prototype.slice.call(data)),
+        consoleData = {type: type, data: sendData, callerData: callerData, config: config};
 
     // Send to open sockets if there is at least one, otherwise buffer
-    var sendData = this.prepSendData(Array.prototype.slice.call(data));
-
-    var consoleData = {type: type, data: sendData, callerData: callerData, config: config};
     if(!this.iosrv || !_.keys(this.iosrv.sockets.sockets).length) {
       //this.clog('No clients - buffering');
       this.msgbuffer.push(consoleData);

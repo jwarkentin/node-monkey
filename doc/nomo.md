@@ -13,8 +13,10 @@ Set/Reset config options.
     * **port**: The port to listen on. Default is `50500`.
     * **overrideConsole**: Set this to `false` to prevent NodeMonkey from overriding the console functions when you start it. You can call `nomo.replaceConsole()` any time to override the console functions and `nomo.revertConsole()` to change it back. Default is `true`.
     * **suppressOutput**: Use this to suppress terminal output when `console.log()` is called, freeing the console from clutter and allowing you to only inspect objects through the browser. Default is `true`.
-    * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `true`.
+    * **saveOutput**: If data is logged before you are able to connect your browser, you may still want to be able to view this data. Setting this option to `true` causes node-monkey to save the output and dump it out to the browser once you connect. Default is `false`.
+    * **clientMaxBuffer**: The maximum number of messages to buffer while waiting for the console to open. Only has an effect if `saveOutput` is enabled. Default is `50`.
     * **silent**: If `true` then nothing will be logged to the console when started. Default is `false`.
+    * **showCallerInfo**: If `true` then call stack information will be collected and the file, line and column where the log call is made from will be displayed in the browser console. Note that when used as a Bunyan stream it will respect the `src` option passed to Bunyan for messages written from Bunyan, even if this is set to `true`. Default is `true`.
     * **convertStyles**: Whether to convert style related terminal escape sequences to corresponding JS console styles. Default is `true`.
 
 ## nomo.start([options])

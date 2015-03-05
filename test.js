@@ -1,8 +1,22 @@
+var bunyan = require('bunyan');
 var clog = console.log;
 var nomo = require('./index.js').start({
   suppressOutput: false
 });
 nomo.profiler.start();
+
+
+var log = bunyan.createLogger({
+  name: 'app',
+  streams: [
+    {
+      level: 'info',
+      stream: nomo.stream
+    }
+  ]
+});
+
+log.info('something happened');
 
 
 //
