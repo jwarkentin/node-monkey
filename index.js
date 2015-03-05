@@ -201,8 +201,10 @@ _.extend(NodeMonkey.prototype, {
     this.srv = httpServer.createServer(function(req, res) {
       if(req.url.indexOf('socket.io') === 1) {
       } else if(req.url == '/client.js') {
+        var tpl = _.template(fs.readFileSync(__dirname + '/src' + req.url).toString());
+
         res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
-        res.end(_.template(fs.readFileSync(__dirname + '/src' + req.url).toString(), {
+        res.end(tpl({
           silentMode: that.config.silent,
           nomoHost: that.config.host,
           nomoPort: that.config.port,
