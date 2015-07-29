@@ -325,11 +325,15 @@ _.extend(NodeMonkey.prototype, {
   stop: function() {
     this.revertConsole();
 
-    this.iosrv.disconnect();
-    delete this.iosrv;
+    if(this.iosrv) {
+      this.iosrv.disconnect();
+      delete this.iosrv;
+    }
 
-    this.srv.close();
-    delete this.srv;
+    if(this.srv) {
+      this.srv.close();
+      delete this.srv;
+    }
   }
 });
 
