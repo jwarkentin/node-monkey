@@ -167,6 +167,19 @@ Object.assign(SSHClient.prototype, {
   _initTerm() {
     let stream = this.stream
 
+    // Hack to work around missing `ONLRET` mode functionality in terminal-kit
+    // See: https://github.com/cronvel/terminal-kit/issues/11#issuecomment-234612484
+    let origOutWrite = stream.stdout.write
+    stream.stdout.write = function(output) {
+      return origOutWrite.call(this, output.replace(/(\n+)/g, '\r$1'))
+    }
+
+    let origErrWrite = stream.stderr.write
+    stream.stderr.write = function(output) {
+      return origErrWrite.call(this, output.replace(/(\n+)/g, '\r$1'))
+    }
+    // -- End hack --
+
     let term = this.term = termkit.createTerminal({
       stdin: stream.stdin,
       stdout: stream.stdout,
@@ -227,7 +240,7 @@ Object.assign(SSHClient.prototype, {
               if (typeof output !== 'string') {
                 output = JSON.stringify(output, null, '  ')
               }
-              this.term(output.replace(/(\n+)/g, '\r$1'))
+              this.term(output)
               this.term.nextLine()
               this.prompt()
             })
@@ -235,7 +248,7 @@ Object.assign(SSHClient.prototype, {
               if (typeof err !== 'string') {
                 err = err.message || JSON.stringify(err, null, '  ')
               }
-              this.term.red.error(err.replace(/(\n+)/g, '\r$1'))
+              this.term.red.error(err)
               this.term.nextLine()
               this.prompt()
             })
