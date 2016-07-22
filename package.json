@@ -1,8 +1,8 @@
 {
   "author": "Justin Warkentin <justin.warkentin@gmail.com>",
   "name": "node-monkey",
-  "version": "0.2.16",
-  "description": "A Node.js module for inspecting, profiling and debugging Node.js applications through a web browser",
+  "version": "1.0.0-beta",
+  "description": "A tool for inspecting, debugging and commanding Node applications through a web browser or SSH interface into your app",
   "keywords": [
     "inspect",
     "debug",
@@ -14,13 +14,33 @@
   ],
   "homepage": "https://github.com/jwarkentin/node-monkey",
   "bugs": "https://github.com/jwarkentin/node-monkey/issues",
-  "main": "./index.js",
+  "main": "./dist/server.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/jwarkentin/node-monkey.git"
   },
   "dependencies": {
-    "lodash": "3.x",
-    "socket.io": "0.9.x"
+    "babel-runtime": "^6.9.2",
+    "keypair": "^1.0.0",
+    "lodash": "^4.13.1",
+    "minimist": "^1.2.0",
+    "restify": "^4.1.1",
+    "scrypt": "^6.0.3",
+    "socket.io": "^1.4.8",
+    "source-map-support": "^0.4.2",
+    "ssh2": "^0.5.0",
+    "terminal-kit": "^0.24.13"
+  },
+  "devDependencies": {
+    "babel-core": "^6.11.4",
+    "babel-loader": "^6.2.4",
+    "babel-plugin-transform-runtime": "^6.9.0",
+    "babel-polyfill": "^6.9.1",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "bunyan": "^1.8.1",
+    "nconf": "^0.8.4",
+    "webpack": "^1.13.1",
+    "webpack-node-externals": "^1.2.0"
   }
 }

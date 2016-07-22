@@ -1,3 +1,9 @@
+Version 1.0.0-beta
+------------------
+- Complete rewrite. Not remotely backward compatible.
+- Implemented user authentication for running in production environments
+- Introduced new SSH interface to get a remote shell into your app
+
 Version 0.2.8
 -------------
 - Fix crashing bug in Windows (workaround for socket.io bug)

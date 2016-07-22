@@ -1,0 +1,372 @@
+import fs from 'fs'
+import ssh2 from 'ssh2'
+import termkit from 'terminal-kit'
+import CmdMan from './command-manager'
+
+function SSHManager(options) {
+  this.options = options = Object.assign({
+    host: '127.0.0.1',
+    port: 50501,
+    title: 'Node Monkey',
+    prompt: 'Node Monkey:'
+  }, options)
+
+  this.clients = {}
+  this.clientId = 1
+
+  this.server = ssh2.Server({
+    hostKeys: options.hostKeys.map(file => {
+      return fs.readFileSync(file)
+    })
+  }, this.onClient.bind(this))
+
+  this.server.listen(options.port, options.host, function() {
+    console.log(`Listening on ${this.address().port}`)
+  })
+}
+
+Object.assign(SSHManager.prototype, {
+  shutdown() {
+    let clients = this.clients
+    for (let c of clients) {
+      c.write('\nShutting down')
+      c.close()
+    }
+  },
+
+  onClient(client) {
+    let clientId = clientId++
+    this.clients[clientId] = new SSHClient({
+      client,
+      userManager: this.options.userManager,
+      title: this.options.title,
+      prompt: this.options.prompt,
+      onClose: () => delete this.clients[clientId]
+    })
+  }
+})
+
+
+function SSHClient(options) {
+  this.options = options
+  this.client = options.client
+  this.userManager = options.userManager
+  this.session = null
+  this.stream = null
+  this.term = null
+  this.ptyInfo = null
+
+  this.title = options.title
+  this.promptTxt = `${options.prompt} `
+  this.inputActive = false
+  this.cmdHistory = []
+
+  this.username = null
+
+  this.client.on('authentication', this.onAuth.bind(this))
+  this.client.on('ready', this.onReady.bind(this))
+  this.client.on('end', this.onClose.bind(this))
+}
+
+Object.assign(SSHClient.prototype, {
+  write(msg, opts) {
+    opts || (opts = {})
+    if (this.term) {
+      if (opts.style) {
+        this.term[style](msg)
+      } else {
+        this.term(msg)
+      }
+    }
+  },
+
+  close() {
+    if (this.stream) {
+      this.stream.end()
+    }
+    this.onClose()
+  },
+
+  onAuth(ctx) {
+    if (ctx.method == 'password') {
+      this.userManager.verifyUser(ctx.username, ctx.password).then(result => {
+        if (result) {
+          this.username = ctx.username
+          ctx.accept()
+        } else {
+          ctx.reject()
+        }
+      }).catch(err => {
+        ctx.reject()
+      })
+    } else if (ctx.method == 'publickey') {
+      ctx.reject()
+    } else {
+      ctx.reject()
+    }
+  },
+
+  onReady() {
+    this.client.on('session', (accept, reject) => {
+      this.session = accept()
+
+      this.session
+        .once('pty', (accept, reject, info) => {
+          this.ptyInfo = info
+          accept && accept()
+        })
+        .on('window-change', this.onWindowChange.bind(this))
+        .once('shell', (accept, reject) => {
+          this.stream = accept()
+          this._initStream()
+          this._initTerm()
+        })
+    })
+  },
+
+  onWindowChange(accept, reject, info) {
+    let stream = this.stream
+    Object.assign(this.ptyInfo, info)
+    if (stream) {
+      stream.rows = info.rows
+      stream.columns = info.cols
+      stream.emit('resize')
+    }
+    accept && accept()
+  },
+
+  onClose() {
+    let onClose = this.options.onClose
+    onClose && onClose()
+  },
+
+  onKey(name, matches, data) {
+    if (name === 'CTRL_L') {
+      this.clearScreen()
+    } else if (name === 'CTRL_D') {
+      this.term.nextLine()
+      this.close()
+    }
+  },
+
+  _initStream() {
+    let stream = this.stream
+    stream.name = this.title
+    stream.rows = this.ptyInfo.rows || 24
+    stream.columns = this.ptyInfo.cols || 80
+    stream.isTTY = true
+    stream.setRawMode = () => {}
+    stream.on('error', error => {
+      console.error('SSH stream error:', error.message)
+    })
+    stream.stdout.getWindowSize = () => {
+      return [ this.ptyInfo.cols, this.ptyInfo.rows ]
+    }
+  },
+
+  _initTerm() {
+    let stream = this.stream
+
+    let term = this.term = termkit.createTerminal({
+      stdin: stream.stdin,
+      stdout: stream.stdout,
+      stderr: stream.stderr,
+      generic: this.ptyInfo.term,
+      appName: this.title
+    })
+
+    term.on('key', this.onKey.bind(this))
+    term.windowTitle(this._interpolate(this.title))
+    this.clearScreen()
+  },
+
+  _interpolate(str) {
+    let varRe = /{@(.+?)}/g
+    let vars = {
+      username: this.username
+    }
+
+    let match
+    while(match = varRe.exec(str)) {
+      if (vars[match[1]]) {
+        str = str.replace(match[0], vars[match[1]])
+      }
+    }
+
+    return str
+  },
+
+  clearScreen() {
+    this.term.clear()
+    this.prompt()
+  },
+
+  prompt() {
+    let term = this.term
+    term.windowTitle(this._interpolate(this.title))
+    term.bold(this._interpolate(this.promptTxt))
+
+    if (!this.inputActive) {
+      this.inputActive = true
+      term.inputField({
+        history: this.cmdHistory,
+        autoComplete: Object.keys(CmdMan.commands),
+        autoCompleteMenu: true
+      }, (error, input) => {
+        this.inputActive = false
+        input[0] !== ' ' && this.cmdHistory.push(input)
+        term.nextLine()
+
+        if (input === 'exit') {
+          this.close()
+        } else if (input === 'clear') {
+          this.clearScreen()
+        } else if (input) {
+          CmdMan.runCmd(input, this.username)
+            .then(output => {
+              if (typeof output !== 'string') {
+                output = JSON.stringify(output, null, '  ')
+              }
+              this.term(output.replace(/(\n+)/g, '\r$1'))
+              this.term.nextLine()
+              this.prompt()
+            })
+            .catch(err => {
+              if (typeof err !== 'string') {
+                err = err.message || JSON.stringify(err, null, '  ')
+              }
+              this.term.red.error(err.replace(/(\n+)/g, '\r$1'))
+              this.term.nextLine()
+              this.prompt()
+            })
+        } else {
+          this.prompt()
+        }
+      })
+    }
+  }
+})
+
+
+export default SSHManager
+
+
+
+// ssh2.Server({
+//   hostKeys: [
+//     fs.readFileSync(`${__dirname}/ssh/hostkey_rsa`),
+//     fs.readFileSync(`${__dirname}/ssh/hostkey_dsa`)
+//   ]
+// }, function(client) {
+//   client.on('authentication', function(ctx) {
+//     if (ctx.method == 'password') {
+//       if (ctx.username == 'guest' && ctx.password == 'guest') {
+//         ctx.accept()
+//       } else {
+//         ctx.reject()
+//       }
+//     } else if (ctx.method == 'publickey') {
+//       ctx.reject()
+//     } else {
+//       ctx.reject()
+//     }
+//   }).on('ready', function() {
+//     console.log('Client authenticated!')
+
+//     client.on('session', function(accept, reject) {
+//       let session = accept(),
+//           stream,title
+//           rows, cols, term,
+//           cmdHistory = []
+
+//       session.once('pty', function(accept, reject, info) {
+//         rows = info.rows
+//         cols = info.cols
+//         term = info.term
+//         accept && accept()
+//       }).on('window-change', function(accept, reject, info) {
+//         rows = info.rows
+//         cols = info.cols
+//         if (stream) {
+//           stream.rows = rows
+//           stream.columns = cols
+//           stream.emit('resize')
+//         }
+//         accept && accept()
+//       }).once('shell', function(accept, reject) {
+//         let title = `Node Monkey@${os.hostname()}`,
+//             promptTxt = `${title}: `
+
+//         stream = accept()
+//         stream.name = title
+//         stream.rows = rows || 24
+//         stream.columns = cols || 80
+//         stream.isTTY = true
+//         stream.setRawMode = () => {}
+//         stream.on('error', error => {
+//           console.error('SSH stream error:', error.message)
+//         })
+//         stream.stdout.getWindowSize = () => {
+//           return [ cols, rows ]
+//         }
+
+//         let terminal = termkit.createTerminal({
+//           stdin: stream.stdin,
+//           stdout: stream.stdout,
+//           stderr: stream.stderr,
+//           generic: term,
+//           appName: title
+//         })
+
+//         let inputActive = false
+//         function prompt() {
+//           terminal.bold(promptTxt)
+
+//           if (!inputActive) {
+//             inputActive = true
+//             terminal.inputField({
+//               history: cmdHistory
+//             }, (error, input) => {
+//               inputActive = false
+//               cmdHistory.push(input)
+//               terminal.nextLine()
+
+//               if (input === 'exit') {
+//                 stream.end()
+//               } else if (input === 'clear') {
+//                 clearScreen()
+//               } else if (input) {
+//                 let args = minimist(parseCommand(input).slice(1))
+//                 // Run command and wait for completion before prompt
+//                 prompt()
+//               } else {
+//                 prompt()
+//               }
+//             })
+//           }
+//         }
+
+//         function clearScreen() {
+//           terminal.clear()
+//           prompt()
+//         }
+
+//         terminal.on('key', (name, matches, data) => {
+//           if (name === 'CTRL_L') {
+//             clearScreen()
+//           } else if (name === 'CTRL_D') {
+//             terminal.nextLine()
+//             stream.end()
+//           }
+//         })
+
+//         terminal.windowTitle(title)
+//         clearScreen()
+//       })
+//     })
+//   }).on('end', function() {
+//     console.log('Client disconnected')
+//   })
+// }).listen(50501, '127.0.0.1', function() {
+//   console.log(`Listening on ${this.address().port}`)
+// })
