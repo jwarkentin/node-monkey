@@ -21,11 +21,13 @@ Object.assign(UserManager.prototype, {
       return this.userFileCache
     } catch(err) {
       if (err.code === 'ENOENT') {
-        return {
-          guest: {
-            password: 'c2NyeXB0AAEAAAABAAAAAZS+vE1+zh4nY6vN21zM3dIzpJVImr8OrK0iJoA+iUPk7WIdo3RhgeATzWENocd7gKNbEKVgq6LbXqrmVjLtnYy5FXyfRCtEtmjUuj19AqcW'
+        return process.env.NODE_ENV === 'production'
+          ? {}
+          : {
+            guest: {
+              password: 'c2NyeXB0AAEAAAABAAAAAZS+vE1+zh4nY6vN21zM3dIzpJVImr8OrK0iJoA+iUPk7WIdo3RhgeATzWENocd7gKNbEKVgq6LbXqrmVjLtnYy5FXyfRCtEtmjUuj19AqcW'
+            }
           }
-        }
       }
       throw err
     }
