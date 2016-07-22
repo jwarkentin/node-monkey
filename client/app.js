@@ -10,7 +10,10 @@ let monkey = window.monkey = {
   disconnect: null,
 
   init() {
-    if (initialized) return
+    if (initialized) {
+      monkey.connect()
+      return
+    }
     initialized = true
 
     return new Promise((resolve, reject) => {
@@ -18,9 +21,37 @@ let monkey = window.monkey = {
         .addHeadScript(`${utils.getClientHost()}/socket.io/socket.io.js`)
         .addEventListener('load', () => {
           initClient().then(client => {
+            let authAttempts = 0,
+                creds = null,
+                stylize = convertStyles,
+                settings = {
+                  convertStyles: true
+                }
+
             monkey.client = client
             monkey.connect = client.connect.bind(client)
-            monkey.disconnect = client.disconnect.bind(client)
+            monkey.disconnect = () => {
+              authAttempts = 0
+              creds = null
+              client.disconnect.call(client)
+            }
+
+            let doAuth = () => {
+              if (authAttempts > 2) {
+                monkey.disconnect()
+                return
+              }
+
+              let username, password
+              if (!creds) {
+                username = prompt('Node Monkey username')
+                password = prompt('Node Monkey password')
+                creds = { username, password }
+              }
+
+              ++authAttempts
+              client.emit('auth', creds)
+            }
 
             client.on('cmdResponse', (cmdId, error, output) => {
               if (monkey.runningCmd[cmdId]) {
@@ -35,6 +66,41 @@ let monkey = window.monkey = {
               }
             })
 
+            client.on('settings', data => {
+              Object.assign(settings, data)
+
+              if (!settings.convertStyles) {
+                stylize = function(args, trace) {
+                  return args.concat([ trace ])
+                }
+              }
+            })
+
+            client.on('auth', doAuth)
+
+            client.on('authResponse', (result, err) => {
+              if (!result) {
+                creds = null
+                console.warn('Auth failed:', err)
+                doAuth()
+              }
+            })
+
+            client.on('console', data => {
+              let trace, cdata = data.callerInfo
+              if (cdata) {
+                trace = ' -- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.caller ? '(function ' + cdata.caller + ')' : '')
+              }
+              if (data.method === 'dir') {
+                console.dir(data.args[0])
+                if (trace) {
+                  console.log.apply(console, stylize(['^^^'], trace))
+                }
+              } else {
+                console[data.method].apply(console, stylize(data.args, trace))
+              }
+            })
+
             resolve()
           }).catch(reject)
         })
@@ -42,6 +108,11 @@ let monkey = window.monkey = {
   },
 
   cmd(command, noOutput) {
+    if (!monkey.client) {
+      console.error(`Must be connected to a server to execute a command`)
+      return
+    }
+
     let p = new Promise((resolve, reject) => {
       let cmdId = monkey.cmdId++
       monkey.client.emit('cmd', cmdId, command)
@@ -58,15 +129,9 @@ let monkey = window.monkey = {
 
 function initClient() {
   return new Promise((resolve, reject) => {
-    let client = io(`${location.origin}/nm`),
-        authAttempts = 0,
-        stylize = convertStyles,
-        settings = {
-          convertStyles: true
-        }
+    let client = io(`${location.origin}/nm`)
 
     client.on('connect', function() {
-      resolve(client)
     })
 
     client.on('error', err => {
@@ -85,47 +150,6 @@ function initClient() {
       console.error(new Error('Socket.IO connection timed out'))
     })
 
-    client.on('settings', data => {
-      Object.assign(settings, data)
-
-      if (!settings.convertStyles) {
-        stylize = function(args, trace) {
-          return args.concat([ trace ])
-        }
-      }
-    })
-
-    client.on('auth', () => {
-      if (authAttempts > 2) {
-        client.disconnect()
-        return
-      }
-
-      // WARNING: DEBUG
-      // client.emit('auth', { username: 'guest', password: 'guest' })
-      // return
-      // END WARNING: DEBUG
-
-      let username = prompt('Node Monkey username'),
-          password = prompt('Node Monkey password')
-
-      ++authAttempts
-      client.emit('auth', { username, password })
-    })
-
-    client.on('console', data => {
-      let trace, cdata = data.callerInfo
-      if (cdata) {
-        trace = ' -- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.caller ? '(function ' + cdata.caller + ')' : '')
-      }
-      if (data.method === 'dir') {
-        console.dir(data.args[0])
-        if (trace) {
-          console.log.apply(console, stylize(['^^^'], trace))
-        }
-      } else {
-        console[data.method].apply(console, stylize(data.args, trace))
-      }
-    })
+    resolve(client)
   })
 }

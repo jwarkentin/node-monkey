@@ -20,21 +20,25 @@ export default options => {
 
     socket.on('auth', creds => {
       userManager.verifyUser(creds.username, creds.password).then(result => {
+        socket.emit('authResponse', result, result ? undefined : 'Incorrect password')
         if (result) {
           socket.username = creds.username
           socket.join('authed')
           if (options.onAuth) {
             options.onAuth(socket)
           }
-        } else {
-          socket.emit('auth')
         }
       }).catch(err => {
-        socket.emit('auth')
+        socket.emit('authResponse', false, err)
       })
     })
 
     socket.on('cmd', (cmdId, command) => {
+      if (!socket.username) {
+        socket.emit('cmdResponse', cmdId, `You are not authorized to run commands`)
+        return
+      }
+
       CmdMan.runCmd(command, socket.username)
         .then(output => {
           socket.emit('cmdResponse', cmdId, null, output)
