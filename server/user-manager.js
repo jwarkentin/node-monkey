@@ -86,6 +86,27 @@ Object.assign(UserManager.prototype, {
     })
   },
 
+  deleteUser(username) {
+    return new Promise((resolve, reject) => {
+      if (!this.userFile) {
+        return reject(new Error(`No user file found. Did you forget to set the 'dataDir' option?`))
+      }
+
+      let users = this._readFile()
+      if (!users[username]) {
+        return reject(new Error(`User '${username}' does not exist`))
+      }
+
+      if (!this.userFileCreated) {
+        return reject(new Error(`User file has not been created`))
+      }
+
+      delete users[username]
+      this._writeFile(users)
+      resolve()
+    })
+  },
+
   setPassword(username, password) {
     return new Promise((resolve, reject) => {
       if (!this.userFile) {

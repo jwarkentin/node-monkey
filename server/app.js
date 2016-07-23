@@ -87,6 +87,18 @@ _.assign(NodeMonkey.prototype, {
         .catch(error)
     })
 
+    CmdMan.addCmd('deluser', (args, output, error) => {
+      let username = args._[0]
+
+      if (!username) {
+        return error(`You must specify a username`)
+      }
+
+      userMan.deleteUser(username)
+        .then(() => output(`Deleted user '${username}'`))
+        .catch(error)
+    })
+
     CmdMan.addCmd('passwd', (args, output, error, user) => {
       let password = args._[0]
 
