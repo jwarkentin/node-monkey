@@ -8,7 +8,8 @@ function SSHManager(options) {
     host: '127.0.0.1',
     port: 50501,
     title: 'Node Monkey',
-    prompt: 'Node Monkey:'
+    prompt: 'Node Monkey:',
+    silent: false
   }, options)
 
   this.clients = {}
@@ -21,7 +22,7 @@ function SSHManager(options) {
   }, this.onClient.bind(this))
 
   this.server.listen(options.port, options.host, function() {
-    console.log(`Listening on ${this.address().port}`)
+    options.silent || console.log(`SSH listening on ${this.address().port}`)
   })
 }
 

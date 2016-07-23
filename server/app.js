@@ -1,5 +1,6 @@
 import os from 'os'
 import fs from 'fs'
+import path from 'path'
 import { execSync } from 'child_process'
 import _ from 'lodash'
 import keypair from 'keypair'
@@ -22,7 +23,10 @@ function NodeMonkey(opts) {
       host: '0.0.0.0',
       port: 50500,
       silent: false,
-      bufferSize: 50
+      bufferSize: 50,
+
+      // Only takes effect when Node Monkey is attached to the console
+      disableLocalOutput: false
     },
     client: {
       showCallerInfo: NODE_ENV === 'production' ? false : true,
@@ -30,7 +34,7 @@ function NodeMonkey(opts) {
     },
     ssh: {
       enabled: false,
-      host: '127.0.0.1',
+      host: '0.0.0.0',
       port: 50501,
       title: `Node Monkey on ${os.hostname()}`,
       prompt: `[Node Monkey] {@username}@${os.hostname()}:`
@@ -52,10 +56,18 @@ function NodeMonkey(opts) {
 }
 
 _.assign(NodeMonkey.prototype, {
+  _getServerProtocol(server) {
+    if (server._events && server._events.tlsClientError) {
+      return 'https'
+    }
+    return 'http'
+  },
+
   _setupUserManager() {
     let dataDir = this.options.dataDir
     let userMan = this.userManager = new UserManager({
-      userFile: dataDir ? `${dataDir}/users.json` : undefined
+      userFile: dataDir ? `${dataDir}/users.json` : undefined,
+      silent: this.options.server.silent
     })
 
     CmdMan.addCmd('adduser', (args, output, error) => {
@@ -93,24 +105,35 @@ _.assign(NodeMonkey.prototype, {
     this.runCmd = CmdMan.runCmd.bind(CmdMan)
   },
 
+  _displayServerWelcome() {
+    if (!this.options.server.silent) {
+      let server = this.options.server.server
+      if (server.listening) {
+        let proto = this._getServerProtocol(server)
+        let { address, port } = server.address()
+        console.log(`Node Monkey listening at ${proto}://${address}:${port}`)
+      } else {
+        server.on('listening', this._displayServerWelcome.bind(this))
+      }
+    }
+  },
+
   _setupServer() {
     let options = this.options,
-        server = options.websrv
+        server = options.server.server
 
     if (!server) {
-      server = setupServer({
+      let serverApp = setupServer({
         name: 'Node Monkey'
       })
+      server = this.options.server.server = serverApp.server
 
       let { host, port } = options.server
-      server.listen(port, host, () => {
-        if (!options.server.silent) {
-          console.log(`Node Monkey listening at ${server.url}`)
-        }
-      })
+      serverApp.listen(port, host)
     }
 
-    this.server = server
+    this._displayServerWelcome()
+    this.serverApp = server
     this.remoteClients = setupSocket({
       server: server.server || server,
       userManager: this.userManager,
@@ -147,6 +170,7 @@ _.assign(NodeMonkey.prototype, {
 
       this.SSHMan = new SSHMan({
         userManager: this.userManager,
+        silent: this.options.server.silent,
         host: sshOpts.host,
         port: sshOpts.port,
         title: _.result(sshOpts, 'title'),
@@ -221,13 +245,25 @@ _.assign(NodeMonkey.prototype, {
     }
   },
 
-  attachConsole() {
+  getServerPaths() {
+    let basePath = path.normalize(`${__dirname}/../dist`)
+
+    return {
+      basePath,
+      client: 'monkey.js',
+      index: 'index.html'
+    }
+  },
+
+  attachConsole(disableLocalOutput) {
     let serverOptions = this.options.server
+    disableLocalOutput = disableLocalOutput || serverOptions.disableLocalOutput
+
     _.each(console.remote, (fn, method) => {
       console[method] = fn.bind(null, true)
 
-      if (!serverOptions.silent) {
-        self._console[method].apply(console, arguments)
+      if (!disableLocalOutput) {
+        console.local[method].apply(console, arguments)
       }
     })
   },

@@ -5,6 +5,16 @@ function UserManager(options) {
   this.userFile = options.userFile
   this.userFileCache = null
   this.userFileCreated = false
+
+  if (!options.silent) {
+    this.getUsers().then(users => {
+      let usernames = Object.keys(users)
+      if (!usernames.length || usernames.length === 1 && usernames[0] === 'guest') {
+        console.warn(`[WARN] No users detected. You can login with default user 'guest' and password 'guest' when prompted.\n` +
+          `This user will be disabled when you create a user account.\n`)
+      }
+    })
+  }
 }
 
 Object.assign(UserManager.prototype, {
@@ -14,6 +24,12 @@ Object.assign(UserManager.prototype, {
     }
 
     try {
+      if (!this.userFile) {
+        let err = new Error(`No user file specified`)
+        err.code = 'ENOENT'
+        throw err
+      }
+
       this.userFileCache = JSON.parse(fs.readFileSync(this.userFile))
       this.userFileCreated = true
       setTimeout(() => { this.userFileCache = null }, 5000)
