@@ -26,7 +26,7 @@ module.exports = options => {
     defaults: null
   })
 
-  let NODE_ENV = process.env.NODE_ENV,
+  let NODE_ENV = process.env.NODE_ENV || 'dev',
       configFile = options.configFile || options.configDir && NODE_ENV ? (`${options.configDir}/${NODE_ENV}.json`) : null
 
   if (configFile) {

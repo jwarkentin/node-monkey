@@ -188,6 +188,8 @@ console.log('Hello world!')
 
 Use this when instantiating Node Monkey with your own web server. At a minimum the `monkey.js` client file must be loaded to connect to Node Monkey. This function returns an object with the `basePath` directory which contains all Node Monkey static files as well as the names of the `client` and `index` files served out-of-the-box by Node Monkey when it provides the server.
 
+**Return**
+
 **Example response object**
 ```js
 {
@@ -219,3 +221,7 @@ _exec(args, output, error, user)_:
 
 * `rawCommand<string>`: The full command you want to be parsed and executed (e.g. `addUser bob -p password`)
 * `asUser<string>`: The user to run the command as
+
+**Return**
+
+A promise that will resolve with successful command output our reject with an error.

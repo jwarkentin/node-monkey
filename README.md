@@ -18,13 +18,10 @@ Node Monkey runs a simple server (or attaches to your existing server) and uses 
 - [Client](doc/client.md)
   - [Properties](doc/client.md#properties)
   - [Methods](doc/client.md#methods)
-  - [Usage notes and examples](doc/client.md#usage)
 - [SSH](doc/ssh.md)
   - [Setup](doc/ssh.md#setup)
   - [Usage](doc/ssh.md#usage)
 - [User Management](doc/user-management.md)
-  - [Creating users](doc/user-management.md#creating-users)
-  - [Changing passwords](doc/user-management.md#changing-passwords)
 - [Contributing](doc/contributing.md)
 - [Changelog](CHANGELOG.md)
 - [MIT License](LICENSE.md)
@@ -45,7 +42,13 @@ I searched Google and found projects like [node-inspector](https://github.com/da
 ## Installation
 
 ```
-npm install node-monkey
+npm install --save node-monkey
+```
+
+If you're interested in testing experimental and upcoming features, run this instead:
+
+```
+npm install --save node-monkey@next
 ```
 
 ## Quick Usage
