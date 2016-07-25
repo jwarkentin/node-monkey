@@ -1,5 +1,9 @@
-Version 1.0.0-beta
-------------------
+Version 1.0.0.beta.2
+--------------------
+- Allow more advanced command functionality and prompting for user input
+
+Version 1.0.0-beta.1
+--------------------
 - Complete rewrite. Not remotely backward compatible.
 - Implemented user authentication for running in production environments
 - Introduced new SSH interface to get a remote shell into your app

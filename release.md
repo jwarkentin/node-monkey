@@ -1,5 +1,7 @@
 ## How to cut a release
 
+**!!! Make sure documentation and changelog are up-to-date.**
+
 To publish `next` version
 
 ```
