@@ -101,6 +101,12 @@ let monkey = window.monkey = {
               }
             })
 
+            client.on('prompt', (promptId, promptTxt, opts) => {
+              opts || (opts = {})
+
+              client.emit('promptResponse', promptId, prompt(promptTxt))
+            })
+
             resolve()
           }).catch(reject)
         })
@@ -120,7 +126,7 @@ let monkey = window.monkey = {
     })
 
     if (!noOutput) {
-      p.then(output => console.log(output)).catch(error => console.error(error))
+      p.then(output => output !== null && console.log(output)).catch(error => error !== null && console.error(error))
     }
 
     return p

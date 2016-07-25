@@ -8,18 +8,11 @@ If you have to manually edit or replace the `users.json` file that stores the ac
 
 ## Creating users
 
-Currently Node Monkey doesn't have the ability for commands to prompt for additional input. This feature is coming but for now passwords must be specified in plain text on the command line. However, command history is not remembered between SSH sessions and just like your standard Linux command line, if you start the command with a space it will not be remembered in your immediate history.
-
 ```
-adduser [username] -p [password]
+adduser [username]
 ```
 
-**Example**
-
-```
- adduser bob -p password123
-```
-Notice the space at the beginning of the command.
+You will then be prompted twice for a password and it will create the user if they match.
 
 
 ## Changing passwords
@@ -30,9 +23,13 @@ You can only change your own password.
 passwd
 ```
 
+You will be prompted to confirm your current password and then to enter your new password twice to confirm.
+
 
 ## Deleting users
 
 ```
 deluser [username]
 ```
+
+Currently anyone can delete a user. This will change when permission management is added.

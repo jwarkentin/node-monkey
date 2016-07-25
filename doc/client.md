@@ -40,9 +40,9 @@ A promise that will resolve with successful output or reject with the error outp
 **Example**
 
 ```js
-monkey.cmd('adduser bob -p password123')
+monkey.cmd('adduser bob')
 
-monkey.cmd('adduser bob -p password123').then(function(output) {
+monkey.cmd('adduser bob').then(function(output) {
   /* do something */
 }).catch(function(error) {
   /* do something else */

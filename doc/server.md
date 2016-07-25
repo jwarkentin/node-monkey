@@ -211,11 +211,26 @@ Detaches Node Monkey from the built-in `console` object.
 
 Adds a custom command that can be called remotely from the browser or SSH command line if it's enabled. When the command is called from either interface your `exec` callback will be called with four arguments, as follows:
 
-_exec(args, output, error, user)_:  
-* `args<object>`: Any parsed arguments given on the command line. They are parsed using [minimist](https://github.com/substack/minimist) so see the documentation there for further details.
-* `output<function>`: Call this upon successful completion of your command function and pass it a string or object to output.
-* `error<function>`: Call this upon unsuccessful completion of your command function and pass it a string or error object to output.
-* `user<string>`: The username of the user that is executing the command.
+_exec(opts, term, callback)_: 
+* `opts`: An object containing two properties currently available to commands to use as needed 
+  * `args<object>`: Any parsed arguments given on the command line. They are parsed using [minimist](https://github.com/substack/minimist) so see the documentation there for further details.
+  * `username<string>`: The username of the user that is executing the command
+* `term<object>`: An object containing a few functions for working with input and output
+  * `write<function>`: Writes whatever is given to the terminal or web console without a newline following. Not that when your command finishes a newline will be inserted automatically before the prompt is displayed so your final output does not need to have a newline.
+    * _write(\<mixed>output, \<object>options)_  
+    `options` accepts `newline` and `bold`
+  * `writeLn<function>`: Calls `write()` but automatically adds a newline.
+    * _writeLn(\<mixed>output, \<object>options)_  
+    `options` accepts `bold`
+  * `error<function>`: Writes red error text to the console.
+    * error(\<mixed>output, \<object>options)_  
+    `options` accepts `newline`
+  * `prompt<function>`: Prompt the user for input
+    * _prompt(\<string>promptTxt[, \<object>options], \<function>callback)_  
+    `prompTxt` is self explanatory  
+    `options` currently accepts the option `hideInput` which will hide keyboard input from being displayed which is useful when prompting for passwords.  
+    `callback` should accept two arguments: `error` and `input`.
+* `done`: You must call this when you command function has finished executing.
 
 ### NodeMonkey#runCmd(\<string>rawCommand, \<string>asUser)
 

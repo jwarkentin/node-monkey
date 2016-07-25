@@ -70,6 +70,59 @@ function SSHClient(options) {
 }
 
 Object.assign(SSHClient.prototype, {
+  _initCmdMan() {
+    let cmdManOpts = {
+      writeLn: null,
+      write: (val, opts) => {
+        opts || (opts = {})
+        val || (val = '')
+
+        if (opts.bold) {
+          this.term.bold(val)
+        } else {
+          this.term(val)
+        }
+
+        if (opts.newline) {
+          this.term.nextLine()
+        }
+      },
+      error: (val, opts) => {
+        opts || (opts = {})
+
+        // TODO: Apparently by sending this to stdout there is a timing issue and anything send to
+        //       stdout appears before this value is send to stderr for some reason.
+        // this.term.red.error(val)
+        this.term.red(val)
+
+        if (opts.newline) {
+          this.term.nextLine()
+        }
+      },
+      prompt: (promptTxt = '', opts, cb) => {
+        if (typeof opts === 'function') {
+          cb = opts
+          opts = undefined
+        }
+        opts || (opts = {})
+
+        let inputOpts = {}
+        if (opts.hideInput) {
+          inputOpts.echo = false
+        }
+
+        this.term(promptTxt)
+        this.term.inputField(inputOpts, cb)
+      }
+    }
+    cmdManOpts.writeLn = (val, opts) => {
+      opts || (opts = {})
+      opts.newline = true
+      cmdManOpts.write(val, opts)
+    }
+    this.cmdMan = new CmdMan(cmdManOpts)
+  },
+
   write(msg, opts) {
     opts || (opts = {})
     if (this.term) {
@@ -119,6 +172,7 @@ Object.assign(SSHClient.prototype, {
         .on('window-change', this.onWindowChange.bind(this))
         .once('shell', (accept, reject) => {
           this.stream = accept()
+          this._initCmdMan()
           this._initStream()
           this._initTerm()
         })
@@ -212,7 +266,7 @@ Object.assign(SSHClient.prototype, {
       this.inputActive = true
       term.inputField({
         history: this.cmdHistory,
-        autoComplete: Object.keys(CmdMan.commands),
+        autoComplete: Object.keys(this.cmdMan.commands),
         autoCompleteMenu: true
       }, (error, input) => {
         this.inputActive = false
@@ -224,7 +278,7 @@ Object.assign(SSHClient.prototype, {
         } else if (input === 'clear') {
           this.clearScreen()
         } else if (input) {
-          CmdMan.runCmd(input, this.username)
+          this.cmdMan.runCmd(input, this.username)
             .then(output => {
               if (typeof output !== 'string') {
                 output = JSON.stringify(output, null, '  ')

@@ -1,26 +1,34 @@
 import utils from './utils'
 import minimist from 'minimist'
 
-function CommandManager() {
-  this.commands = {}
+let commands = {}
+
+function CommandManager(options) {
+  this.commands = commands
+  this.write = options.write
+  this.writeLn = options.writeLn
+  this.error = options.error
+  this.prompt = options.prompt
+}
+
+CommandManager.addCmd = (cmdName, opts, exec) => {
+  if (commands[cmdName]) {
+    throw new Error(`'${cmdName}' is already registered as a command`)
+  }
+
+  if (typeof opts === 'function') {
+    exec = opts
+    opts = {}
+  }
+
+  commands[cmdName] = {
+    opts,
+    exec
+  }
 }
 
 Object.assign(CommandManager.prototype, {
-  addCmd(cmdName, opts, exec) {
-    if (this.commands[cmdName]) {
-      throw new Error(`'${cmdName}' is already registered as a command`)
-    }
-
-    if (typeof opts === 'function') {
-      exec = opts
-      opts = {}
-    }
-
-    this.commands[cmdName] = {
-      opts,
-      exec
-    }
-  },
+  addCmd: CommandManager.addCmd,
 
   runCmd(rawCommand, asUser) {
     return new Promise((resolve, reject) => {
@@ -37,10 +45,20 @@ Object.assign(CommandManager.prototype, {
       }
 
       let args = minimist(parsed.slice(1))
-      cmd.exec(args, resolve, reject, asUser)
+      cmd.exec({
+          args,
+          username: asUser
+        }, {
+          write: this.write,
+          writeLn: this.writeLn,
+          error: this.error,
+          prompt: this.prompt
+        },
+        resolve
+      )
     })
   }
 })
 
 
-export default new CommandManager()
+export default CommandManager

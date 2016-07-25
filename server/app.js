@@ -47,8 +47,8 @@ function NodeMonkey(opts) {
   this.msgBuffer = []
   this.BUNYAN_STREAM = bunyanStream(this)
 
+  this._setupCmdMan()
   this._setupUserManager()
-  this._attachCmdMan()
   this._setupServer()
   this._createLocal()
   this._createRemote()
@@ -70,51 +70,103 @@ _.assign(NodeMonkey.prototype, {
       silent: this.options.server.silent
     })
 
-    CmdMan.addCmd('adduser', (args, output, error) => {
-      let username = args._[0],
-          password = args.p
+    this.cmdMan.addCmd('adduser', (opts, term, done) => {
+      let args = opts.args,
+          username = args._[0]
 
       if (!username) {
-        return error(`You must specify a username`)
+        term.error(`You must specify a username`)
+        return done()
       }
 
-      if (!password) {
-        return error(`You must specify a password with the '-p' flag`)
-      }
-
-      userMan.createUser(username, password)
-        .then(() => output(`Created user '${username}'`))
-        .catch(error)
+      term.prompt('Password: ', { hideInput: true }, (error, password) => {
+        term.writeLn()
+        term.prompt('Again: ', { hideInput: true }, (error, passwordAgain) => {
+          term.writeLn()
+          if (password === passwordAgain) {
+            userMan.createUser(username, password)
+              .then(() => term.write(`Created user '${username}'`))
+              .catch(term.error)
+              .then(done)
+          } else {
+            term.error('Passwords do not match')
+            done()
+          }
+        })
+      })
     })
 
-    CmdMan.addCmd('deluser', (args, output, error) => {
-      let username = args._[0]
+    this.cmdMan.addCmd('deluser', (opts, term, done) => {
+      let args = opts.args,
+          username = args._[0]
 
       if (!username) {
-        return error(`You must specify a username`)
+        term.error(`You must specify a username`)
+        return done()
       }
 
       userMan.deleteUser(username)
-        .then(() => output(`Deleted user '${username}'`))
-        .catch(error)
+        .then(() => term.write(`Deleted user '${username}'`))
+        .catch(term.error)
+        .then(done)
     })
 
-    CmdMan.addCmd('passwd', (args, output, error, user) => {
-      let password = args._[0]
+    this.cmdMan.addCmd('passwd', (opts, term, done) => {
+      let args = opts.args,
+          user = opts.username
 
-      if (!password) {
-        return error(`You must specify a password`)
-      }
-
-      userMan.setPassword(user, password)
-        .then(() => output(`Updated password for '${user}'`))
-        .catch(error)
+      term.prompt('Current password: ', { hideInput: true }, (error, curpwd) => {
+        term.writeLn()
+        userMan.verifyUser(user, curpwd).then(matches => {
+          if (matches) {
+            term.prompt('Password: ', { hideInput: true }, (error, password) => {
+              term.writeLn()
+              term.prompt('Again: ', { hideInput: true }, (error, passwordAgain) => {
+                term.writeLn()
+                if (password === passwordAgain) {
+                  userMan.setPassword(user, password)
+                    .then(() => term.write(`Updated password for ${user}`))
+                    .catch(term.error)
+                    .then(done)
+                } else {
+                  term.error('Passwords do not match')
+                  done()
+                }
+              })
+            })
+          } else {
+            term.error('Incorrect password')
+            done()
+          }
+        })
+      })
     })
   },
 
-  _attachCmdMan() {
-    this.addCmd = CmdMan.addCmd.bind(CmdMan)
-    this.runCmd = CmdMan.runCmd.bind(CmdMan)
+  _setupCmdMan() {
+    let cmdMan = this.cmdMan = new CmdMan({
+      write: (val, opts) => {
+        console.log(val)
+      },
+      writeLn: (val, opts) => {
+        console.log(val)
+      },
+      error: (val, opts) => {
+        console.error(val)
+      },
+      prompt: (promptTxt, opts, cb) => {
+        if (typeof opts === 'function') {
+          cb = opts
+          opts = undefined
+        }
+        opts || (opts = {})
+
+        console.warn('Prompt not implemented')
+      }
+    })
+
+    this.addCmd = cmdMan.addCmd.bind(cmdMan)
+    this.runCmd = cmdMan.runCmd.bind(cmdMan)
   },
 
   _displayServerWelcome() {

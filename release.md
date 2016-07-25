@@ -4,8 +4,7 @@ To publish `next` version
 
 ```
 npm version 1.0.0-beta.1
-npm push
-npm push --tags
+git push --follow-tags
 npm publish https://github.com/jwarkentin/node-monkey/archive/v1.0.0-beta.1.tar.gz --tag next
 ```
 

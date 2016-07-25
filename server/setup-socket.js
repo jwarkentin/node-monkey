@@ -15,6 +15,7 @@ export default options => {
 
   ns = io.of('/nm')
   ns.on('connection', socket => {
+    let cmdMan = null
     socket.emit('settings', options.clientSettings)
     socket.emit('auth')
 
@@ -39,7 +40,11 @@ export default options => {
         return
       }
 
-      CmdMan.runCmd(command, socket.username)
+      if (!cmdMan) {
+        cmdMan = createCmdMan(socket)
+      }
+
+      cmdMan.runCmd(command, socket.username)
         .then(output => {
           socket.emit('cmdResponse', cmdId, null, output)
         }).catch(err => {
@@ -53,4 +58,50 @@ export default options => {
   })
 
   return ns
+}
+
+function createCmdMan(socket) {
+  let promptId = 0,
+      prompts = {}
+
+  let cmdManOpts = {
+    writeLn: null,
+    write: (val, opts) => {
+      if (!val) return
+
+      socket.emit('console', {
+        method: 'log',
+        args: [ val ]
+      })
+    },
+    error: (val, opts) => {
+      if (!val) return
+
+      socket.emit('console', {
+        method: 'error',
+        args: [ val ]
+      })
+    },
+    prompt: (promptTxt, opts, cb) => {
+      if (typeof opts === 'function') {
+        cb = opts
+        opts = undefined
+      }
+      opts || (opts = {})
+
+      let pid = promptId++
+      socket.emit('prompt', pid, promptTxt, opts)
+
+      prompts[pid] = cb
+    }
+  }
+  cmdManOpts.writeLn = cmdManOpts.write
+
+  socket.on('promptResponse', (promptId, response) => {
+    if (prompts[promptId]) {
+      prompts[promptId](null, response)
+    }
+  })
+
+  return new CmdMan(cmdManOpts)
 }

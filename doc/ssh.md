@@ -38,4 +38,3 @@ let monkey = require('node-monkey')({
 * Holding CTRL while pressing the right and left arrow keys does nothing
 * CTRL+C to stop commands
 * CTRL+U and CTRL+K for clearing from cursor to beginning and end of line
-* Ability for commands to prompt for more input and provide incremental output
