@@ -223,7 +223,7 @@ _exec(opts, term, callback)_:
     * _writeLn(\<mixed>output, \<object>options)_  
     `options` accepts `bold`
   * `error<function>`: Writes red error text to the console.
-    * error(\<mixed>output, \<object>options)_  
+    * _error(\<mixed>output, \<object>options)_  
     `options` accepts `newline`
   * `prompt<function>`: Prompt the user for input
     * _prompt(\<string>promptTxt[, \<object>options], \<function>callback)_  
