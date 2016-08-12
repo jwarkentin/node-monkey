@@ -22,7 +22,7 @@ function SSHManager(options) {
   }, this.onClient.bind(this))
 
   this.server.listen(options.port, options.host, function() {
-    options.silent || console.log(`SSH listening on ${this.address().port}`)
+    options.silent || console.local.log(`SSH listening on ${this.address().port}`)
   })
 }
 

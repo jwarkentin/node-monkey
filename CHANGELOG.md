@@ -1,3 +1,8 @@
+Version 1.0.0.beta.3
+--------------------
+- Improve documentation
+- Fix bug with attachConsole() causing improper behavior and extraneous output
+
 Version 1.0.0.beta.2
 --------------------
 - Allow more advanced command functionality and prompting for user input

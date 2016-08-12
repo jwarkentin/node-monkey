@@ -175,7 +175,7 @@ _.assign(NodeMonkey.prototype, {
       if (server.listening) {
         let proto = this._getServerProtocol(server)
         let { address, port } = server.address()
-        console.log(`Node Monkey listening at ${proto}://${address}:${port}`)
+        console.local.log(`Node Monkey listening at ${proto}://${address}:${port}`)
       } else {
         server.on('listening', this._displayServerWelcome.bind(this))
       }
@@ -324,10 +324,12 @@ _.assign(NodeMonkey.prototype, {
     disableLocalOutput = disableLocalOutput || serverOptions.disableLocalOutput
 
     _.each(console.remote, (fn, method) => {
-      console[method] = fn.bind(null, true)
+      console[method] = function() {
+        fn.apply(console.remote, arguments)
 
-      if (!disableLocalOutput) {
-        console.local[method].apply(console, arguments)
+        if (!disableLocalOutput) {
+          console.local[method].apply(console, arguments)
+        }
       }
     })
   },

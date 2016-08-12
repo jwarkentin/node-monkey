@@ -4,6 +4,8 @@ A tool for inspecting, debugging and commanding Node applications through a web 
 
 Node Monkey runs a simple server (or attaches to your existing server) and uses [Socket.IO](https://github.com/LearnBoost/socket.io) to create a websocket connection between the browser and server. Its primary feature captures anything that would normally be logged to the terminal and passes it to the browser for inspection.
 
+It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but Node Monkey also provides addition features and significant flexibility for more advanced usage. You can actually SSH in to your app where Node Monkey will provide a command line interface to execute your own custom commands. This can be very useful for debugging, monitoring or otherwise controlling your application while it is running.
+
 ## Contents
 
 - [Motivation](#motivation)
