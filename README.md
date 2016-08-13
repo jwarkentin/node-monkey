@@ -37,8 +37,8 @@ I searched Google and found projects like [node-inspector](https://github.com/da
 ## Features
 
 * Log console output from your app to the browser console
-  - Now provides a Bunyan stream (see [below](#bunyan)) interface!
-* Provides SSH capability so you can get a shell into your app for inspection, debugging or anything else you can imagine
+  - Provides a stream for those using Bunyan (see [here](doc/server.md#nodemonkeybunyan_stream))
+* Provides SSH capability so you can get a shell into your app for inspection, debugging or controlling your app
 * Register commands for your application that can be executed from the browser console or the SSH interface
 
 ## Installation
