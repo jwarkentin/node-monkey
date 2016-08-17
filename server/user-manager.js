@@ -1,6 +1,21 @@
 import fs from 'fs'
 import scrypt from 'scrypt'
 
+let useNew = false
+try {
+  Buffer.from('', 'base64')
+} catch(err) {
+  useNew = true
+}
+
+function stringToBuffer(string, base) {
+  if (useNew) {
+    return new Buffer(string, base)
+  } else {
+    return Buffer.from(string, base)
+  }
+}
+
 function UserManager(options) {
   this.userFile = options.userFile
   this.userFileCache = null
@@ -60,7 +75,7 @@ Object.assign(UserManager.prototype, {
   },
 
   _verifyPassword(hash, passwd) {
-    return scrypt.verifyKdfSync(Buffer.from(hash, 'base64'), passwd.normalize('NFKC'))
+    return scrypt.verifyKdfSync(stringToBuffer(hash, 'base64'), passwd.normalize('NFKC'))
   },
 
   createUser(username, password) {
