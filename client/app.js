@@ -87,6 +87,8 @@ let monkey = window.monkey = {
             })
 
             client.on('console', data => {
+              data = cycle.retrocycle(data)
+
               let trace, cdata = data.callerInfo
               if (cdata) {
                 trace = ' -- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.caller ? '(function ' + cdata.caller + ')' : '')

@@ -33,7 +33,7 @@ module.exports = [
       loaders: [
         {
           test: /\.js$/,
-          exclude: /(node_modules|dist|client)/,
+          exclude: /(node-monkey\/(dist|client)|node-monkey\/.*node_modules)/,
           loader: 'babel',
           query: {
             cacheDirectory: true,
@@ -65,7 +65,7 @@ module.exports = [
       loaders: [
         {
           test: /\.jsx?$/,
-          exclude: /(node_modules|dist|server)/,
+          exclude: /(node-monkey\/(dist|server)|node-monkey\/.*node_modules)/,
           loader: 'babel',
           query: {
             cacheDirectory: true,

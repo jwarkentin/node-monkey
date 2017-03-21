@@ -4,7 +4,7 @@ A tool for inspecting, debugging and commanding Node applications through a web 
 
 Node Monkey runs a simple server (or attaches to your existing server) and uses [Socket.IO](https://github.com/LearnBoost/socket.io) to create a websocket connection between the browser and server. Its primary feature captures anything that would normally be logged to the terminal and passes it to the browser for inspection.
 
-It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but Node Monkey also provides addition features and significant flexibility for more advanced usage. You can actually SSH in to your app where Node Monkey will provide a command line interface to execute your own custom commands. This can be very useful for debugging, monitoring or otherwise controlling your application while it is running.
+It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but Node Monkey also provides additional features and significant flexibility for more advanced usage. You can actually SSH in to your app where Node Monkey will provide a command line interface to execute your own custom commands. This can be very useful for debugging, monitoring or otherwise controlling your application while it is running.
 
 ## Contents
 
@@ -17,7 +17,7 @@ It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but
   - [Options](doc/server.md#options)
   - [Properties](doc/server.md#properties)
   - [Methods](doc/server.md#methods)
-- [Client](doc/client.md)
+- [Client (browser)](doc/client.md)
   - [Properties](doc/client.md#properties)
   - [Methods](doc/client.md#methods)
 - [SSH](doc/ssh.md)
@@ -55,11 +55,10 @@ npm install --save node-monkey@next
 
 ## Quick Usage
 
-Using NodeMonkey is designed to be extremely easy. All you have to do is include one line in your application. Anything that is logged to the console after this will show up in the browser console once connected.
-It captures all output to `console.log()`, `console.warn()` and `console.error()`.
+Using NodeMonkey is designed to be extremely easy. All you have to do is include a line or two in your application. Anything that is logged to the console after this will show up in the browser console once connected. It captures the output to most `console.*` function calls and forwards the output to the browser for inspection.
 
 ```js
-let monkey = require('node-monkey')([options]);
+let monkey = require('node-monkey')([options])
 
 // Do this if you want to bind to the console and have all output directed to the browser
 // Pass `true` to disable server side logging and only see output in the browser
@@ -74,7 +73,7 @@ Node Monkey listening at http://0.0.0.0:50500
 
 To connect your browser simply go to the address it shows in your web browser (`http://0.0.0.0:50500` in this case). If you change the default `host` and `port` bindings or pass in your own server be sure to adjust your URL accordingly. It will prompt you for a username and password. Until you setup a user the default is `guest` and `guest`.
 
-If you provide your own server you can view output in the console of your own web application instead. To see how to provide your own server check out the [documentation](doc/server.md#provide-your-own).
+If you provide your own server you can view output in the console of your own web application instead. To see how to provide your own server check out the [documentation](doc/server.md#provide-your-own). You will need to include the following `<script>` tag in your HTML source to integrate Node Monkey output with your app:
 
 ```html
 <script type="text/javascript" src="http://0.0.0.0:50500/monkey.js"></script>

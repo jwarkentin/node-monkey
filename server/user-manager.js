@@ -24,7 +24,13 @@ function UserManager(options) {
   if (!options.silent) {
     this.getUsers().then(users => {
       let usernames = Object.keys(users)
-      if (!usernames.length || usernames.length === 1 && usernames[0] === 'guest') {
+      if (!usernames.length) {
+        if (process.env.NODE_ENV === 'production') {
+          console.warn(`No users have been created and you are running in production mode so you will not be able to login.\n`)
+        } else {
+          console.warn(`It seems there are no users and you are not running in production mode so you will not be able to login. This is probably a bug. Please report it!\n`)
+        }
+      } else if (usernames.length === 1 && usernames[0] === 'guest') {
         console.warn(`[WARN] No users detected. You can login with default user 'guest' and password 'guest' when prompted.\n` +
           `This user will be disabled when you create a user account.\n`)
       }
@@ -146,7 +152,7 @@ Object.assign(UserManager.prototype, {
     return new Promise((resolve, reject) => {
       let users = this._readFile()
       if (!users[username]) {
-        return reject(`User '${username}' does not exist`)
+        return reject(new Error(`User '${username}' does not exist`))
       }
 
       resolve(users[username])

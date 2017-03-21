@@ -302,7 +302,7 @@ _.assign(NodeMonkey.prototype, {
     let remoteClients = this.remoteClients
     if (_.size(remoteClients.adapter.rooms['authed'])) {
       _.each(this.msgBuffer, info => {
-        remoteClients.to('authed').emit('console', info)
+        remoteClients.to('authed').emit('console', cycle.decycle(info))
       })
 
       this.msgBuffer = []

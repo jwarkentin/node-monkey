@@ -113,6 +113,12 @@ The `options` object you can provide to Node Monkey is nested and hopefully some
 }
 ```
 
+If you provide your own server you can view output in the console of your own web application instead. To see how to provide your own server check out the [documentation](doc/server.md#provide-your-own). You will need to include the following `<script>` tag in your HTML source to integrate Node Monkey output with your app:
+
+```html
+<script type="text/javascript" src="/monkey.js"></script>
+```
+
 
 ## Properties
 
@@ -230,7 +236,7 @@ _exec(opts, term, callback)_:
     `prompTxt` is self explanatory  
     `options` currently accepts the option `hideInput` which will hide keyboard input from being displayed which is useful when prompting for passwords.  
     `callback` should accept two arguments: `error` and `input`.
-* `done`: You must call this when you command function has finished executing.
+* `done`: You must call this when your command function has finished executing.
 
 ### NodeMonkey#runCmd(\<string>rawCommand, \<string>asUser)
 
@@ -239,4 +245,4 @@ _exec(opts, term, callback)_:
 
 **Return**
 
-A promise that will resolve with successful command output our reject with an error.
+A promise that will resolve with successful command output or reject with an error.
