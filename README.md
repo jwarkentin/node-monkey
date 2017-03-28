@@ -1,10 +1,10 @@
 # Node Monkey
 
-A tool for inspecting, debugging and commanding Node applications through a web browser or SSH interface into your app.
+A tool for inspecting, debugging and commanding Node.js applications through a web browser or SSH interface into your app (with your own custom commands).
 
 Node Monkey runs a simple server (or attaches to your existing server) and uses [Socket.IO](https://github.com/LearnBoost/socket.io) to create a websocket connection between the browser and server. Its primary feature captures anything that would normally be logged to the terminal and passes it to the browser for inspection.
 
-It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but Node Monkey also provides additional features and significant flexibility for more advanced usage. You can actually SSH in to your app where Node Monkey will provide a command line interface to execute your own custom commands. This can be very useful for debugging, monitoring or otherwise controlling your application while it is running.
+It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but Node Monkey also provides additional features and significant flexibility for more advanced usage. You can actually SSH into your app where Node Monkey will provide a command line interface to execute your own custom commands. This can be very useful for debugging, monitoring or otherwise controlling your application while it is running. It provides authentication for security in production applications.
 
 ## Contents
 
@@ -36,7 +36,7 @@ I searched Google and found projects like [node-inspector](https://github.com/da
 
 ## Features
 
-* Log console output from your app to the browser console
+* Log console output from your app to a browser console for easier inspection
   - Provides a stream for those using Bunyan (see [here](doc/server.md#nodemonkeybunyan_stream))
 * Provides SSH capability so you can get a shell into your app for inspection, debugging or controlling your app
 * Register commands for your application that can be executed from the browser console or the SSH interface
@@ -55,14 +55,46 @@ npm install --save node-monkey@next
 
 ## Quick Usage
 
-Using NodeMonkey is designed to be extremely easy. All you have to do is include a line or two in your application. Anything that is logged to the console after this will show up in the browser console once connected. It captures the output to most `console.*` function calls and forwards the output to the browser for inspection.
+Although Node Monkey supports many features, getting started is designed to be extremely easy. All you have to do is include a line or two in your application. Anything that is logged to the console after this will show up in the browser console once connected. It captures the output to most `console.*` function calls and forwards the output to the browser for inspection.
+
+The simplest usage looks like this:
 
 ```js
-let monkey = require('node-monkey')([options])
+let NodeMonkey = require('node-monkey')
+NodeMonkey()
+```
 
-// Do this if you want to bind to the console and have all output directed to the browser
-// Pass `true` to disable server side logging and only see output in the browser
-monkey.attachConsole()
+Node Monkey also supports many configuration [options](doc/server.md#options) and named instances. The call takes the form `NodeMonkey([options[, name])`. So, for example, to suppress local console output and only see output in your connected browser or terminal you might do something like this:
+
+```js
+let NodeMonkey = require('node-monkey')
+let monkey = NodeMonkey({
+  server: {
+    disableLocalOutput: true
+  }
+})
+```
+
+You can include Node Monkey in all the files within your app that you want and if used like the examples above, each call to `NodeMonkey()` will always return the same instance you first constructed, ignoring any options passed on subsequent calls. However, you may want to construct new instances with different options. To do so, give your instance a name:
+
+```js
+let NodeMonkey = require('node-monkey')
+let monkey1 = NodeMonkey()          // Creates an instance named 'default'
+let monkey2 = NodeMonkey('george')  // Creates a new instance with default options
+let monkey3 = NodeMonkey({          // Creates a new instance with custom options named 'ninja'
+  server: {
+    silent: true
+  }
+}, 'ninja')
+```
+
+If you don't specify a port for additional instances it will automatically be set for you and will just increment from the default (e.g. 50502, 50504 for the websocket server and 50503, 50505 for the SSH server).
+
+To get an already constructed instance in another file just call it with the name again:
+
+```js
+let NodeMonkey = require('node-monkey')
+let monkey3 = NodeMonkey('ninja')
 ```
 
 When you start your app you will see the following output:

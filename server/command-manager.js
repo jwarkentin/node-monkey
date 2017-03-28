@@ -1,36 +1,45 @@
+import _ from 'lodash'
 import utils from './utils'
 import minimist from 'minimist'
 
-let commands = {}
-
-function CommandManager(options) {
-  this.commands = commands
-  this.write = options.write
-  this.writeLn = options.writeLn
-  this.error = options.error
-  this.prompt = options.prompt
-}
-
-CommandManager.addCmd = (cmdName, opts, exec) => {
-  if (commands[cmdName]) {
-    throw new Error(`'${cmdName}' is already registered as a command`)
-  }
-
-  if (typeof opts === 'function') {
-    exec = opts
-    opts = {}
-  }
-
-  commands[cmdName] = {
-    opts,
-    exec
-  }
+function CommandManager() {
+  this.commands = {}
 }
 
 Object.assign(CommandManager.prototype, {
-  addCmd: CommandManager.addCmd,
+  addCmd(cmdName, opts, exec) {
+    if (this.commands[cmdName]) {
+      throw new Error(`'${cmdName}' is already registered as a command`)
+    }
 
-  runCmd(rawCommand, asUser) {
+    if (typeof opts === 'function') {
+      exec = opts
+      opts = {}
+    }
+
+    this.commands[cmdName] = {
+      opts,
+      exec
+    }
+  },
+
+  bindI(ioInterface) {
+    let boundI = _.mapValues(this)
+    Object.assign(boundI, _.mapValues(this.constructor.prototype, (val, key) => {
+      if (val instanceof Function) {
+        if (key === 'runCmd') {
+          return val.bind(this, ioInterface)
+        }
+        return val.bind(this)
+      } else {
+        return val
+      }
+    }))
+
+    return boundI
+  },
+
+  runCmd(io, rawCommand, asUser) {
     return new Promise((resolve, reject) => {
       let parsed = utils.parseCommand(rawCommand),
           cmdName = parsed[0],
@@ -49,10 +58,10 @@ Object.assign(CommandManager.prototype, {
           args,
           username: asUser
         }, {
-          write: this.write,
-          writeLn: this.writeLn,
-          error: this.error,
-          prompt: this.prompt
+          write: io.write,
+          writeLn: io.writeLn,
+          error: io.error,
+          prompt: io.prompt
         },
         resolve
       )

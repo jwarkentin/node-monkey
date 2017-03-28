@@ -21,8 +21,9 @@ function SSHManager(options) {
     })
   }, this.onClient.bind(this))
 
+  let monkey = this.options.monkey
   this.server.listen(options.port, options.host, function() {
-    options.silent || console.local.log(`SSH listening on ${this.address().port}`)
+    options.silent || monkey.local.log(`SSH listening on ${this.address().port}`)
   })
 }
 
@@ -39,6 +40,7 @@ Object.assign(SSHManager.prototype, {
     let clientId = clientId++
     this.clients[clientId] = new SSHClient({
       client,
+      cmdManager: this.options.cmdManager,
       userManager: this.options.userManager,
       title: this.options.title,
       prompt: this.options.prompt,
@@ -51,6 +53,7 @@ Object.assign(SSHManager.prototype, {
 function SSHClient(options) {
   this.options = options
   this.client = options.client
+  this.cmdMan = null
   this.userManager = options.userManager
   this.session = null
   this.stream = null
@@ -120,7 +123,7 @@ Object.assign(SSHClient.prototype, {
       opts.newline = true
       cmdManOpts.write(val, opts)
     }
-    this.cmdMan = new CmdMan(cmdManOpts)
+    this.cmdMan = this.options.cmdManager.bindI(cmdManOpts)
   },
 
   write(msg, opts) {

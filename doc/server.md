@@ -65,11 +65,12 @@ The `options` object you can provide to Node Monkey is nested and hopefully some
   * `port<int>`: The port to listen on for Node Monkey client connections.
   * `silent<bool>`: When `true`, the start-up messages Node Monkey normally prints will be silenced.
   * `bufferSize<int>`: When there are no clients connected to receive messages Node Monkey buffers them until at least one client connects to receive them. This is the number of messages it will buffer before the oldest ones start to drop off.
-  * `disableLocalOutput<bool>`: When `true` and `attachConsole()` has been called all local console output will be silenced and logged output will only be visible in the browser console.
+  * `attachOnStart<bool>`: Whether Node Monkey should automatically call `attachConsole()` for you when it initializes.
+  * `disableLocalOutput<bool>`: When `true` and `attachConsole()` has been called all local console output will be silenced and logged output will only be visible in the browser console. Can be overridden on each individual call to `attachConsole()` (see [docs](nodemonkeyattachconsole)).
 
 * `client<object>`
   * `showCallerInfo<bool>`: When `true` all browser console output will show at least the file and line number where the call was made that logged the output.
-  * `convertStyles<bool>`: Sometimes terminal output contains special codes that create colored output in the terminal. When true, this attempts to convert the output to the equivalent browser console styles.
+  * `convertStyles<bool>`: Sometimes terminal output contains special codes that create colored output in the terminal. When true, this attempts to convert the terminal output styles to the equivalent browser console styles.
 
 * `ssh<object>`
   * `enabled<bool>`: When `true` the SSH app interface is enabled. This allows you to actually SSH in to your application to run custom commands for whatever purposes you may have. The `dataDir` option is required to enable this.
@@ -92,6 +93,7 @@ The `options` object you can provide to Node Monkey is nested and hopefully some
     port: 50500,
     silent: false,
     bufferSize: 50,
+    attachOnStart: true,
 
     // Only takes effect when Node Monkey is attached to the console
     disableLocalOutput: false
@@ -169,25 +171,51 @@ monkey.client.on('mychannel', function(arg1, arg2, arg3) {
 
 ## Methods
 
-### NodeMonkey#constructor([\<object>options])
+### NodeMonkey#constructor([\<object>options[, \<string>name]])
 
-Instantiate Node Monkey, optionally customizing with [options](#options).
+Instantiates an instance of Node Monkey.
 
-This adds two properties to the built-in `console` object: `console.local` and `console.remote`. You can always log things to the local console by using `console.local` and you can log things exclusively to the browser by using `console.remote`. Use [attachConsole()](#nodemonkeyattachconsole) to capture all `console` calls and display them in the browser console.
+By default, this will automatically attach to the `console` object and send log messages to both the terminal and your browser console. This behavior can be customized by the [options](#options) you can pass in.
+
+The constructed instance contains two useful properties named `local` and `remote`. If you want to only log something to either the local terminal or only to the remote browser console and not both, despite Node Monkey being attached to the `console` object, you can do so using these objects as demonstrated below.
 
 **Example**
 ```
-let monkey = require('node-monkey')()
+let NodeMonkey = require('node-monkey')
+let monkey = NodeMonkey()
+
+// With the default options this will show in the browser console and in your terminal
+console.log('Hello world!')
 
 // This will only appear in your terminal
-console.local.log('Local!')
+monkey.local.log('Local!')
 
 // This will only appear in your attached browser console
-console.remote.log('Remote!')
+monkey.remote.log('Remote!')
+```
 
-// By calling `attachConsole()` this will now show in the browser console
-monkey.attachConsole()
-console.log('Hello world!')
+#### Named Instances
+
+You can include Node Monkey in all the files within your app that you want and if used like the examples above, each call to `NodeMonkey()` will always return the same instance you first constructed, ignoring any options passed on subsequent calls. However, you may want to construct new instances with different options. To do so, give your instance a name:
+
+```js
+let NodeMonkey = require('node-monkey')
+let monkey1 = NodeMonkey()          // Creates an instance named 'default'
+let monkey2 = NodeMonkey('george')  // Creates a new instance with default options
+let monkey3 = NodeMonkey({          // Creates a new instance with custom options named 'ninja'
+  server: {
+    silent: true
+  }
+}, 'ninja')
+```
+
+If you don't specify a port for additional instances it will automatically be set for you and will just increment from the default (e.g. 50502, 50504 for the websocket server and 50503, 50505 for the SSH server).
+
+To get an already constructed instance in another file just call it with the name again:
+
+```js
+let NodeMonkey = require('node-monkey')
+let monkey3 = NodeMonkey('ninja')
 ```
 
 ### NodeMonkey#getServerPaths()
