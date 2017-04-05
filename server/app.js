@@ -12,15 +12,12 @@ import setupSocket from './setup-socket'
 import SSHMan from './ssh-manager'
 import CmdMan from './command-manager'
 import UserManager from './user-manager'
+import utils from './utils'
 
 const DEFAULT_PORT = 50500
 const CONSOLE = _.mapValues(console)
 const ConsoleEvent = new EventEmitter()
 const HANDLE_TYPES = [ 'log', 'info', 'warn', 'error', 'dir' ]
-
-const consoleRe = new RegExp(`(Console|Object)\\.(${HANDLE_TYPES.join('|')})`)
-const bunyanRe = new RegExp(`Logger\\..+bunyan`)
-const objectTypeRe = new RegExp(`Object\\.(${HANDLE_TYPES.join('|')})`)
 
 let attachedCount = 0
 
@@ -73,7 +70,7 @@ function NodeMonkey(opts) {
     this.attachConsole()
   }
 
-  // TODO: Deprecated. Remove by v1.0.0
+  // TODO: Deprecated. Remove everything after this line by v1.0.0
   let self = this
   let warned = false
   function warnConsole() {
@@ -89,6 +86,10 @@ function NodeMonkey(opts) {
     }
   }
 
+  // This is here because webpack renames the function and for whatever reason the stack trace doesn't show the right name,
+  // even with proper source maps. This is all just temporary anyway so I'm hacking it.
+  Object.defineProperty(warnConsole, 'name', { value: 'warnConsole' })
+
   console.local = _.mapValues(this.local, (fn, method) => {
     let localFn = function() {
       warnConsole()
@@ -100,7 +101,7 @@ function NodeMonkey(opts) {
   console.remote = _.mapValues(this.remote, (fn, method) => {
     let remoteFn = function() {
       warnConsole()
-      return fn.apply(console, arguments)
+      return fn.apply({ callerStackDistance: 2 }, arguments)
     }
     Object.defineProperty(remoteFn, 'name', { value: method })
     return remoteFn
@@ -316,38 +317,51 @@ _.assign(NodeMonkey.prototype, {
     }
   },
 
-  _getCallerInfo() {
+  // TODO: This whole process of trying to identify the true source of the call is so fucking messy and fragile. Need to think
+  //       of a better way to identify the call source and rewrite all this shitty code handling it right now.
+  _getCallerInfo(callerStackDistance) {
     if (this.options.client.showCallerInfo) {
-      let stack = (new Error()).stack.toString().split('\n')
-      let caller = stack.find((el, index, arr) => {
-        // We're either looking for a console method call or a bunyan log call. This logic will break down if method names change.
-        return index > 0 && (consoleRe.test(el) || (!bunyanRe.test(el) && bunyanRe.test(arr[index - 1])))
+      let stack = utils.getStack().map(frame => {
+        return {
+          functionName: frame.getFunctionName(),
+          methodName: frame.getMethodName(),
+          fileName: frame.getFileName(),
+          lineNumber: frame.getLineNumber(),
+          columnNumber: frame.getColumnNumber()
+        }
       })
 
-      if (!caller) {
-        // Best guess
-        caller = stack[6]
+      let caller = stack.find((frame, index, stack) => {
+        // We're either looking for a console method call or a bunyan log call. This logic will break down if method names change.
+        let twoBack = stack[index - 2]
+        let sixBack = stack[index - 4]
+        if (twoBack && twoBack.functionName === 'Logger._emit' && /\/bunyan\.js$/.test(twoBack.fileName)) {
+          return true
+        } else if (twoBack && sixBack && twoBack.methodName === 'emit' && sixBack.methodName === '_sendMessage') {
+          return true
+        }
+      })
+
+      if (!caller && typeof callerStackDistance === 'number') {
+        caller = stack[callerStackDistance]
       }
 
       if (caller) {
-        let callerMatch = caller.match(/at (.*) \((.*):(.*):(.*)\)/) || caller.match(/at ()(.*):(.*):(.*)/)
-        let callerInfo = {
-          caller: callerMatch[1].replace(objectTypeRe, 'Console.$1'),
-          file: callerMatch[2],
-          line: parseInt(callerMatch[3]),
-          column: parseInt(callerMatch[4])
+        return {
+          caller: caller.functionName || caller.methodName,
+          file: caller.fileName,
+          line: caller.lineNumber,
+          column: caller.columnNumber
         }
-
-        return callerInfo
       }
     }
   },
 
-  _sendMessage(info) {
+  _sendMessage(info, callerStackDistance) {
     this.msgBuffer.push({
       method: info.method,
       args: info.args,
-      callerInfo: info.callerInfo || this._getCallerInfo()
+      callerInfo: info.callerInfo || this._getCallerInfo(callerStackDistance + 1)
     })
     if (this.msgBuffer.length > this.options.server.bufferSize) {
       this.msgBuffer.shift()
@@ -376,11 +390,11 @@ _.assign(NodeMonkey.prototype, {
     let self = this
     let remote = this.remote = {}
     HANDLE_TYPES.forEach(method => {
-      this.remote[method] = function() {
+      self.remote[method] = function() {
         self._sendMessage({
           method,
           args: Array.prototype.slice.call(arguments)
-        })
+        }, this.callerStackDistance ? this.callerStackDistance + 1 : 2)
       }
       Object.defineProperty(remote[method], 'name', { value: method })
     })
@@ -392,9 +406,17 @@ _.assign(NodeMonkey.prototype, {
     }
 
     if (!attachedCount) {
+      // If this function is in the process of handling the log call we will try and prevent potential infinite recursion
+      let handlersActive = 0
       HANDLE_TYPES.forEach(method => {
         console[method] = function() {
+          if (handlersActive) {
+            return self.local[method].apply(console, arguments)
+          }
+
+          ++handlersActive
           ConsoleEvent.emit(method, ...arguments)
+          --handlersActive
         }
         Object.defineProperty(console[method], 'name', { value: method })
       })
@@ -408,12 +430,13 @@ _.assign(NodeMonkey.prototype, {
 
     _.each(this.remote, (fn, method) => {
       let handler = this._typeHandlers[method] = function() {
-        fn.apply(self.remote, arguments)
+        fn.apply({ callerStackDistance: 5 }, arguments)
 
         if (!disableLocalOutput) {
           self.local[method].apply(console, arguments)
         }
       }
+      Object.defineProperty(handler, 'name', { value: method })
 
       ConsoleEvent.on(method, handler)
     })

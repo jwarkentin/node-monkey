@@ -1,4 +1,5 @@
 import commonUtils from '../lib/common-utils'
+import sourceMapSupport from 'source-map-support'
 
 export default Object.assign({
   parseCommand(str) {
@@ -14,5 +15,18 @@ export default Object.assign({
     } while (match !== null)
 
     return arr
+  },
+
+  getStack() {
+    let prep = Error.prepareStackTrace
+    let limit = Error.stackTraceLimit
+    Error.prepareStackTrace = (error, trace) => trace.map(sourceMapSupport.wrapCallSite)
+    Error.stackTraceLimit = 30
+
+    let stack = new Error().stack
+    Error.prepareStackTrace = prep
+    Error.stackTraceLimit = limit
+
+    return stack.slice(1)
   }
 }, commonUtils)
