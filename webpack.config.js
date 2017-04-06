@@ -16,8 +16,8 @@ module.exports = [
     externals: [ nodeExternals() ],
 
     output: {
-      filename: `server.js`,
-      path: __dirname + '/dist',
+      path: `${__dirname}/dist`,
+      filename: `server.js`
     },
 
     node: {
@@ -30,24 +30,34 @@ module.exports = [
     },
 
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.js$/,
           exclude: /(node-monkey\/(dist|client)|node-monkey\/.*node_modules)/,
-          loader: 'babel',
-          query: {
-            cacheDirectory: true,
-            presets: ['es2015', 'stage-0'],
-            plugins: ['transform-runtime']
-          }
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                compact: true,
+                cacheDirectory: true,
+                presets: ['es2015', 'stage-0'],
+                plugins: ['transform-runtime']
+              }
+            }
+          ]
         }
       ]
     },
 
     plugins: [
-      new webpack.BannerPlugin('module.exports = ', { raw: true }),
-      new webpack.BannerPlugin('require("source-map-support").install();', { raw: true, entryOnly: false }),
-      new webpack.optimize.UglifyJsPlugin()
+      new webpack.BannerPlugin({ banner: 'module.exports = ', raw: true }),
+      new webpack.BannerPlugin({ banner: 'require("source-map-support").install();', raw: true, entryOnly: false }),
+      new webpack.optimize.UglifyJsPlugin({
+        sourceMap: true,
+        compress: {
+          warnings: true
+        }
+      })
     ],
 
     devtool: 'source-map'
@@ -57,8 +67,8 @@ module.exports = [
     entry: './client/app.js',
 
     output: {
-      filename: `monkey.js`,
-      path: __dirname + '/dist',
+      path: `${__dirname}/dist`,
+      filename: `monkey.js`
     },
 
     module: {
@@ -66,28 +76,52 @@ module.exports = [
         {
           test: /\.jsx?$/,
           exclude: /(node-monkey\/(dist|server)|node-monkey\/.*node_modules)/,
-          loader: 'babel',
-          query: {
-            cacheDirectory: true,
-            presets: ['es2015', 'stage-0'],
-            plugins: ['transform-runtime']
-          }
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                compact: true,
+                cacheDirectory: true,
+                presets: ['es2015', 'stage-0'],
+                plugins: ['transform-runtime']
+              }
+            }
+          ]
         }
       ]
     },
 
     plugins: [
-      new webpack.optimize.UglifyJsPlugin()
+      new webpack.optimize.UglifyJsPlugin({
+        sourceMap: true,
+        compress: {
+          warnings: true
+        }
+      })
     ],
 
     devtool: 'source-map'
   },
   {
-    context: __dirname + '/client',
+    entry: `${__dirname}/client/index.html`,
+    context: `${__dirname}/client`,
 
     output: {
-      filename: 'index.html',
-      path: __dirname + '/dist',
+      path: `${__dirname}/dist`,
+      filename: 'index.html'
+    },
+
+    module: {
+      loaders: [
+        {
+          exclude: '/.*/',
+          use: [
+            {
+              loader: 'ignore-loader'
+            }
+          ]
+        }
+      ]
     },
 
     plugins: [

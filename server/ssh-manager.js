@@ -93,8 +93,8 @@ Object.assign(SSHClient.prototype, {
       error: (val, opts) => {
         opts || (opts = {})
 
-        // TODO: Apparently by sending this to stdout there is a timing issue and anything send to
-        //       stdout appears before this value is send to stderr for some reason.
+        // TODO: Apparently by sending this to stdout there is a timing issue and anything sent to
+        //       stdout appears before this value is sent to stderr for some reason.
         // this.term.red.error(val)
         this.term.red(val)
 

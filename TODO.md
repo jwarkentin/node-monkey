@@ -2,6 +2,8 @@
 - Show examples of how to implement custom SSH commands under server `addCmd()` documentation
 - Clarify that "Client" refers to the browser in the documentation
 - Implement message filtering
+- Add option to show console log call sources in the terminal, not just in the browser
+- Create shortcut (`Alt+R`?) to pop up prompt for command and then show the output in an alert box instead of the terminal
 
 
 - console.trace() functionality

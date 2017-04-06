@@ -31,6 +31,7 @@ let monkey = require('node-monkey')({
 * exit
 * adduser
 * deluser
+* showusers
 * passwd
 
 #### Notable missing features
