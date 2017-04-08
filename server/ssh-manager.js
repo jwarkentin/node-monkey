@@ -216,61 +216,6 @@ Object.assign(SSHClient.prototype, {
     }
   },
 
-  // _setRawMode() {
-  //   let ptyModes = termios.getattr(this.pty.slave_fd)
-  //   let flags = {
-  //     iflag: {},
-  //     oflag: {},
-  //     lflag: {}
-  //   }
-
-  //   let csRe = /CS\d/
-  //   for (let flagType in flags) {
-  //     let curFlags = ptyModes[flagType]
-  //     for (let [ k, v ] of Object.entries(curFlags)) {
-  //       if (!csRe.test(k)) {
-  //         flags[flagType][k] = false
-  //       }
-  //     }
-  //   }
-  //   // let flags = {
-  //   //   iflag: {
-  //   //     IGNBRK: false,
-  //   //     BRKINT: false,
-  //   //     IGNPAR: false,
-  //   //     PARMRK: false,
-  //   //     INPCK: false,
-  //   //     ISTRIP: false,
-  //   //     INLCR: false,
-  //   //     IGNCR: false,
-  //   //     ICRNL: false,
-  //   //     IXON: false,
-  //   //     IXOFF: false,
-  //   //     IXANY: false,
-  //   //     IMAXBEL: false
-  //   //   },
-  //   //   oflag: {
-  //   //     OPOST: false
-  //   //   },
-  //   //   lflag: {
-  //   //     ISIG: false,
-  //   //     ICANON: false
-  //   //   }
-  //   // }
-
-  //   termios.setattr(this.pty.slave_fd, flags)
-  // },
-
-  // _setCharMode() {
-  //   let flags = {
-  //     lflag: {
-  //       ICANON: false
-  //     }
-  //   }
-
-  //   termios.setattr(this.pty.slave_fd, flags)
-  // },
-
   _initStream() {
     let stream = this.stream
     stream.name = this.title
@@ -292,7 +237,6 @@ Object.assign(SSHClient.prototype, {
     this.pty.slave.getWindowSize = () => {
       return [ this.ptyInfo.cols, this.ptyInfo.rows ]
     }
-    // this.ptyModes = termios.getattr(this.pty.slave_fd)
     this.stream.stdin.pipe(this.pty.master)
     this.pty.master.pipe(this.stream.stdout)
   },
