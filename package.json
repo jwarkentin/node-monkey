@@ -24,6 +24,7 @@
     "keypair": "^1.0.1",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
+    "pty.js": "^0.3.1",
     "restify": "^4.3.0",
     "scrypt": "^6.0.3",
     "socket.io": "^1.7.3",

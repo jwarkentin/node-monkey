@@ -1,4 +1,6 @@
 import fs from 'fs'
+import tty from 'tty'
+import pty from 'pty.js'
 import ssh2 from 'ssh2'
 import termkit from 'terminal-kit'
 import CmdMan from './command-manager'
@@ -57,6 +59,7 @@ function SSHClient(options) {
   this.userManager = options.userManager
   this.session = null
   this.stream = null
+  this.pty = null
   this.term = null
   this.ptyInfo = null
 
@@ -172,25 +175,19 @@ Object.assign(SSHClient.prototype, {
           this.ptyInfo = info
           accept && accept()
         })
-        .on('window-change', this.onWindowChange.bind(this))
+        .on('window-change', (accept, reject, info) => {
+          Object.assign(this.ptyInfo, info)
+          this._resize()
+          accept && accept()
+        })
         .once('shell', (accept, reject) => {
           this.stream = accept()
           this._initCmdMan()
           this._initStream()
+          this._initPty()
           this._initTerm()
         })
     })
-  },
-
-  onWindowChange(accept, reject, info) {
-    let stream = this.stream
-    Object.assign(this.ptyInfo, info)
-    if (stream) {
-      stream.rows = info.rows
-      stream.columns = info.cols
-      stream.emit('resize')
-    }
-    accept && accept()
   },
 
   onClose() {
@@ -202,37 +199,114 @@ Object.assign(SSHClient.prototype, {
     if (name === 'CTRL_L') {
       this.clearScreen()
     } else if (name === 'CTRL_D') {
-      this.term.nextLine()
-      this.close()
+      let input = this.inputField.getInput()
+      if (!input.length) {
+        this.term.nextLine()
+        setTimeout(() => {
+          this.close()
+        }, 0)
+      }
     }
   },
+
+  _resize() {
+    let term = this.term
+    if (this.term) {
+      this.term.stdout.emit('resize')
+    }
+  },
+
+  // _setRawMode() {
+  //   let ptyModes = termios.getattr(this.pty.slave_fd)
+  //   let flags = {
+  //     iflag: {},
+  //     oflag: {},
+  //     lflag: {}
+  //   }
+
+  //   let csRe = /CS\d/
+  //   for (let flagType in flags) {
+  //     let curFlags = ptyModes[flagType]
+  //     for (let [ k, v ] of Object.entries(curFlags)) {
+  //       if (!csRe.test(k)) {
+  //         flags[flagType][k] = false
+  //       }
+  //     }
+  //   }
+  //   // let flags = {
+  //   //   iflag: {
+  //   //     IGNBRK: false,
+  //   //     BRKINT: false,
+  //   //     IGNPAR: false,
+  //   //     PARMRK: false,
+  //   //     INPCK: false,
+  //   //     ISTRIP: false,
+  //   //     INLCR: false,
+  //   //     IGNCR: false,
+  //   //     ICRNL: false,
+  //   //     IXON: false,
+  //   //     IXOFF: false,
+  //   //     IXANY: false,
+  //   //     IMAXBEL: false
+  //   //   },
+  //   //   oflag: {
+  //   //     OPOST: false
+  //   //   },
+  //   //   lflag: {
+  //   //     ISIG: false,
+  //   //     ICANON: false
+  //   //   }
+  //   // }
+
+  //   termios.setattr(this.pty.slave_fd, flags)
+  // },
+
+  // _setCharMode() {
+  //   let flags = {
+  //     lflag: {
+  //       ICANON: false
+  //     }
+  //   }
+
+  //   termios.setattr(this.pty.slave_fd, flags)
+  // },
 
   _initStream() {
     let stream = this.stream
     stream.name = this.title
-    stream.rows = this.ptyInfo.rows || 24
-    stream.columns = this.ptyInfo.cols || 80
     stream.isTTY = true
     stream.setRawMode = () => {}
     stream.on('error', error => {
       console.error('SSH stream error:', error.message)
     })
-    stream.stdout.getWindowSize = () => {
+  },
+
+  _initPty() {
+    let newPty = pty.native.open(this.ptyInfo.cols, this.ptyInfo.rows)
+    this.pty = {
+      master_fd: newPty.master,
+      slave_fd: newPty.slave,
+      master: new tty.WriteStream(newPty.master),
+      slave: new tty.ReadStream(newPty.slave)
+    }
+    this.pty.slave.getWindowSize = () => {
       return [ this.ptyInfo.cols, this.ptyInfo.rows ]
     }
+    // this.ptyModes = termios.getattr(this.pty.slave_fd)
+    this.stream.stdin.pipe(this.pty.master)
+    this.pty.master.pipe(this.stream.stdout)
   },
 
   _initTerm() {
     let stream = this.stream
 
     let term = this.term = termkit.createTerminal({
-      stdin: stream.stdin,
-      stdout: stream.stdout,
-      stderr: stream.stderr,
+      stdin: this.pty.slave,
+      stdout: this.pty.slave,
+      stderr: this.pty.slave,
       generic: this.ptyInfo.term,
       appName: this.title
     })
-    term.options.crlf = true
 
     term.on('key', this.onKey.bind(this))
     term.windowTitle(this._interpolate(this.title))
@@ -267,7 +341,7 @@ Object.assign(SSHClient.prototype, {
 
     if (!this.inputActive) {
       this.inputActive = true
-      term.inputField({
+      this.inputField = term.inputField({
         history: this.cmdHistory,
         autoComplete: Object.keys(this.cmdMan.commands),
         autoCompleteMenu: true
