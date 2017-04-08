@@ -22,7 +22,16 @@
 - Allow filtering server side based on tags to restrict what users can see which messages
 - Allow setting include/exclude filter regexp's on the client to only show messages matching filters
 
+### Command Manager
+- Implement command abort functionality
+  - runCmd() call should return an object with an `abort()` method
+  - Commands should be provided a context object with an EventEmitter prototype that they can bind to for handling aborts
+  - Should it be a fatal error if there is no event listener after the command has started?
+    - Even though some commands aren't really cancelable it they can still bind a noop callback. It just would force implementers to think about cancellation to try and prevent uninteruptible commands.
+  - Make SSH module's `CTRL_C` call `abort()`
+
 ### SSH
+- Allow an application name to be set (default: 'Node Monkey') which gets interpolated into the prompt text
 - Implement CTRL_K, CTRL_U and any other standard terminal features that seem useful
 - Refactor to improve organization and keep terminal events, data and management separate. Also need to expose more useful API.
 - Consider how to make authentication and command management pluggable in preparation for moving to its own module

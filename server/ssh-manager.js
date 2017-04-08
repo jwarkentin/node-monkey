@@ -198,6 +198,11 @@ Object.assign(SSHClient.prototype, {
   onKey(name, matches, data) {
     if (name === 'CTRL_L') {
       this.clearScreen()
+    } else if (name === 'CTRL_C') {
+      this.inputActive = false
+      this.inputField.abort()
+      this.term('\n^^C\n')
+      this.prompt()
     } else if (name === 'CTRL_D') {
       let input = this.inputField.getInput()
       if (!input.length) {
@@ -291,8 +296,16 @@ Object.assign(SSHClient.prototype, {
         autoCompleteMenu: true
       }, (error, input) => {
         this.inputActive = false
-        input[0] !== ' ' && this.cmdHistory.push(input)
         term.nextLine()
+
+        if (error) {
+          return term.error(error.message || error)
+        }
+
+        if (!input) {
+          return this.prompt()
+        }
+        input[0] !== ' ' && this.cmdHistory.push(input)
 
         if (input === 'exit') {
           this.close()
