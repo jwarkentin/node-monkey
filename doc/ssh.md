@@ -18,12 +18,34 @@ let monkey = require('node-monkey')({
 
 ## Usage
 
+**SSH connection example**
+
+If you were running your server on `localhost` on the default port and without any accounts created, you would run this command:
+
+```
+ssh guest@localhost -p 50501
+```
+
+You would then be prompted for a password. The default password for the guest account is 'guest'. Once authenticated, you will be presented with a command prompt provided by your application with any custom commands you've registered that looks like this (by default):
+
+```
+[Node Monkey] guest@YourHostName:
+```
+
+Pressing `TAB` at an empty prompt will show you all available commands and allow you to select one using `TAB` or the left and right arrow keys.
+
 #### Features currently supported
 
 * Tab autocomplete for commands
+* Command history (with up/down arrow keys)
 * Space at start of command prevents it from being recorded in command history
+* Holding CTRL while pressing the right and left arrow keys jumps the cursor by whole words
 * CTRL+D exits
 * CTRL+L clears the screen
+* CTRL+K clears from the cursor to the end of the line
+* CTRL+U clears from the cursor to the beginning of the line
+* CTRL+W clears the previous word
+* ALT+D clears the next word
 
 #### Built-in commands
 
@@ -36,6 +58,4 @@ let monkey = require('node-monkey')({
 
 #### Notable missing features
 
-* Holding CTRL while pressing the right and left arrow keys does nothing
-* CTRL+C to stop commands
-* CTRL+U and CTRL+K for clearing from cursor to beginning and end of line
+* CTRL+C to abort running commands

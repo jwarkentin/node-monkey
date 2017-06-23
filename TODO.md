@@ -10,6 +10,7 @@
   - This would create a mechanism that could be used to expire sessions if, for example, a developer connected from a user's machine to debug and then walked away and forgot to disconnect, thus leaving a knowledgable user with full access to the internals of the server.
 
 ### Documentation
+- Show good examples (video?) of wrapping an existing server socket with Node Monkey websocket and including script on page
 - Show example of running command to SSH to server on SSH doc page
 - Show examples of how to implement custom SSH commands under server `addCmd()` documentation
 - Clarify that "Client" refers to the browser in the documentation
@@ -32,12 +33,12 @@
 
 ### SSH
 - Allow an application name to be set (default: 'Node Monkey') which gets interpolated into the prompt text
-- Implement CTRL_K, CTRL_U and any other standard terminal features that seem useful
 - Refactor to improve organization and keep terminal events, data and management separate. Also need to expose more useful API.
 - Consider how to make authentication and command management pluggable in preparation for moving to its own module
 - Break out into separate module
 
 ### Browser
+- Hide reconnection errors and just show 'Reconnecting...' instead. Once it connects, show a simple horizontal rule to break up the output.
 - Consider possibility of implementing a simple CLI emulator
 - Create shortcut in browser (`Alt+R`?) to pop up prompt for command and then show the output in an alert box instead of the terminal
 
@@ -49,4 +50,4 @@
 - Replace object's functions with a call that sends a command, runs the function and returns the result
 - Is it possible to rebuild full objects including inheritance?
 - Implement a way to document command help info and view existing commands as well as individual command documentation
-  - NOTE: The full set of available commands can already be seen by pressing `TAB` to auto-complete with nothing entered over SSH, but this doesn't solve the problem for the browser. Probably just need to add a command to list commands (possibly with an auto-complete like prefix filter).
+  - NOTE: The full set of available commands can already be seen by pressing `TAB` to auto-complete with nothing entered over SSH, but this doesn't solve the problem for the browser. Probably just need to add a command to list commands (possibly with an auto-complete-like prefix filter).

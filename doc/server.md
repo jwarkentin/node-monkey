@@ -69,7 +69,7 @@ The `options` object you can provide to Node Monkey is nested and hopefully some
   * `disableLocalOutput<bool>`: When `true` and `attachConsole()` has been called all local console output will be silenced and logged output will only be visible in the browser console. Can be overridden on each individual call to `attachConsole()` (see [docs](nodemonkeyattachconsole)).
 
 * `client<object>`
-  * `showCallerInfo<bool>`: When `true` all browser console output will show at least the file and line number where the call was made that logged the output.
+  * `showCallerInfo<bool>`: When `true` all browser console output will show at least the file and line number where the call was made that logged the output. There is a generally negligible performance penalty (microseconds) for showing call traces. The only time it would matter is during rapid, continuous execution of a function that triggers a call trace.
   * `convertStyles<bool>`: Sometimes terminal output contains special codes that create colored output in the terminal. When true, this attempts to convert the terminal output styles to the equivalent browser console styles.
 
 * `ssh<object>`
@@ -126,16 +126,15 @@ If you provide your own server you can view output in the console of your own we
 
 ### NodeMonkey#BUNYAN_STREAM
 
-If you use the awesome [Bunyan](https://github.com/trentm/node-bunyan) library for logging, you can add Node Monkey as a Bunyan log stream. If you pass Bunyan's `src: true` option in development you will get good call traces in the web console. You generally should not set this flag in production as it can seriously hurt performance.
+If you use the awesome [Bunyan](https://github.com/trentm/node-bunyan) library for logging, you can add Node Monkey as a Bunyan log stream. It is highly recommended that you don't pass `src: true` when creating the logger since there is a performance penalty and it will be ignored since Node Monkey already performs its own optional call traces.
 
 **Example**
 ```js
-let monkey = require('node-monkey')(),
-    bunyan = require('bunyan')
+let monkey = require('node-monkey')()
+let bunyan = require('bunyan')
 
 let logger = bunyan.createLogger({
   name: 'app',
-  src: true,  // NOTE: Do not enable this flag in production
   streams: [
     {
       level: 'info',

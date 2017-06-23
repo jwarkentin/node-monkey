@@ -308,7 +308,8 @@ Object.assign(SSHClient.prototype, {
         input[0] !== ' ' && this.cmdHistory.push(input)
 
         if (input === 'exit') {
-          this.close()
+          // This is delayed briefly so the newline can be echoed to the client, creating cleaner output when exiting
+          setTimeout(this.close.bind(this))
         } else if (input === 'clear') {
           this.clearScreen()
         } else if (input) {
