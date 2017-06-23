@@ -1,7 +1,7 @@
 {
   "author": "Justin Warkentin <justin.warkentin@gmail.com>",
   "name": "node-monkey",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0",
   "description": "A tool for inspecting, debugging and commanding Node applications through a web browser or SSH interface into your app",
   "keywords": [
     "inspect",
