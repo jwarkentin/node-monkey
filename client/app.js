@@ -128,7 +128,12 @@ let monkey = window.monkey = {
     })
 
     if (!noOutput) {
-      p.then(output => output !== null && console.log(output)).catch(error => error !== null && console.error(error))
+      p.then(output => output !== null && console.log(output)).catch(error => {
+        if (error !== null) {
+          console.error(error)
+          alert(error.message)
+        }
+      })
     }
 
     return p

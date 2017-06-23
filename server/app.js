@@ -271,6 +271,7 @@ _.assign(NodeMonkey.prototype, {
     this.serverApp = server
     this.remoteClients = setupSocket({
       server: server.server || server,
+      cmdManager: this._cmdMan,
       userManager: this.userManager,
       onAuth: this._sendMessages.bind(this),
       clientSettings: options.client

@@ -1,11 +1,11 @@
-let fs = require('fs'),
-    webpack = require('webpack'),
-    nodeExternals = require('webpack-node-externals'),
-    CopyProcessPlugin = require('./copy-process-webpack-plugin'),
-    initConfig = require('./init-config'),
-    config = initConfig({
-      configDir: `${__dirname}/config`
-    })
+let fs = require('fs')
+let webpack = require('webpack')
+let nodeExternals = require('webpack-node-externals')
+let CopyProcessPlugin = require('./copy-process-webpack-plugin')
+let initConfig = require('./init-config')
+let config = initConfig({
+  configDir: `${__dirname}/config`
+})
 
 
 module.exports = [

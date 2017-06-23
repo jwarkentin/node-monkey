@@ -27,14 +27,14 @@
     "pty.js": "^0.3.1",
     "restify": "^4.3.0",
     "scrypt": "^6.0.3",
-    "socket.io": "^1.7.3",
+    "socket.io": "^2.0.3",
     "source-map-support": "^0.4.15",
     "ssh2": "^0.5.5",
     "terminal-kit": "^1.11.0"
   },
   "devDependencies": {
     "babel-core": "^6.25.0",
-    "babel-loader": "^6.4.1",
+    "babel-loader": "^7.1.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
@@ -42,7 +42,7 @@
     "bunyan": "^1.8.10",
     "ignore-loader": "^0.1.2",
     "nconf": "^0.8.4",
-    "webpack": "^2.3.3",
+    "webpack": "^3.0.0",
     "webpack-node-externals": "^1.6.0"
   },
   "scripts": {

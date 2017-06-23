@@ -41,7 +41,7 @@ export default options => {
       }
 
       if (!cmdMan) {
-        cmdMan = createCmdMan(socket)
+        cmdMan = createCmdMan(options.cmdManager, socket)
       }
 
       cmdMan.runCmd(command, socket.username)
@@ -60,7 +60,7 @@ export default options => {
   return ns
 }
 
-function createCmdMan(socket) {
+function createCmdMan(cmdManager, socket) {
   let promptId = 0,
       prompts = {}
 
@@ -103,5 +103,5 @@ function createCmdMan(socket) {
     }
   })
 
-  return new CmdMan(cmdManOpts)
+  return cmdManager.bindI(cmdManOpts)
 }

@@ -11,7 +11,6 @@
 
 ### Documentation
 - Show good examples (video?) of wrapping an existing server socket with Node Monkey websocket and including script on page
-- Show example of running command to SSH to server on SSH doc page
 - Show examples of how to implement custom SSH commands under server `addCmd()` documentation
 - Clarify that "Client" refers to the browser in the documentation
 
@@ -41,6 +40,7 @@
 - Hide reconnection errors and just show 'Reconnecting...' instead. Once it connects, show a simple horizontal rule to break up the output.
 - Consider possibility of implementing a simple CLI emulator
 - Create shortcut in browser (`Alt+R`?) to pop up prompt for command and then show the output in an alert box instead of the terminal
+- Figure out how to properly collect command output and display alert dialogs with respons output and errors
 
 ### Server
 - Add option to show console log call sources in the terminal, not just in the browser

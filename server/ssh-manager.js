@@ -3,7 +3,6 @@ import tty from 'tty'
 import pty from 'pty.js'
 import ssh2 from 'ssh2'
 import termkit from 'terminal-kit'
-import CmdMan from './command-manager'
 
 function SSHManager(options) {
   this.options = options = Object.assign({
