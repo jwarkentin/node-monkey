@@ -2,6 +2,7 @@
   "author": "Justin Warkentin <justin.warkentin@gmail.com>",
   "name": "node-monkey",
   "version": "1.0.1",
+  "license": "MIT",
   "description": "A tool for inspecting, debugging and commanding Node applications through a web browser or SSH interface into your app",
   "keywords": [
     "inspect",
