@@ -23,7 +23,7 @@
   "dependencies": {
     "babel-runtime": "^6.23.0",
     "keypair": "^1.0.1",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.12",
     "minimist": "^1.2.0",
     "pty.js": "^0.3.1",
     "restify": "^4.3.0",
