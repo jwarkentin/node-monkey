@@ -1,4 +1,4 @@
-node_modules
-test
-.npmignore
-.gitignore
+*
+.*
+!dist/*.js
+!dist/*.js.map

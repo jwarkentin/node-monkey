@@ -1,29 +1,35 @@
-import fs from 'fs'
-import tty from 'tty'
-import pty from 'pty.js'
-import ssh2 from 'ssh2'
-import termkit from 'terminal-kit'
+import fs from "fs"
+import tty from "tty"
+import pty from "pty.js"
+import ssh2 from "ssh2"
+import termkit from "terminal-kit"
 
 function SSHManager(options) {
-  this.options = options = Object.assign({
-    host: '127.0.0.1',
-    port: 50501,
-    title: 'Node Monkey',
-    prompt: 'Node Monkey:',
-    silent: false
-  }, options)
+  this.options = options = Object.assign(
+    {
+      host: "127.0.0.1",
+      port: 50501,
+      title: "Node Monkey",
+      prompt: "Node Monkey:",
+      silent: false,
+    },
+    options,
+  )
 
   this.clients = {}
   this.clientId = 1
 
-  this.server = ssh2.Server({
-    hostKeys: options.hostKeys.map(file => {
-      return fs.readFileSync(file)
-    })
-  }, this.onClient.bind(this))
+  this.server = ssh2.Server(
+    {
+      hostKeys: options.hostKeys.map((file) => {
+        return fs.readFileSync(file)
+      }),
+    },
+    this.onClient.bind(this),
+  )
 
   let monkey = this.options.monkey
-  this.server.listen(options.port, options.host, function() {
+  this.server.listen(options.port, options.host, function () {
     options.silent || monkey.local.log(`SSH listening on ${this.address().port}`)
   })
 }
@@ -32,7 +38,7 @@ Object.assign(SSHManager.prototype, {
   shutdown() {
     let clients = this.clients
     for (let c of clients) {
-      c.write('\nShutting down')
+      c.write("\nShutting down")
       c.close()
     }
   },
@@ -45,11 +51,10 @@ Object.assign(SSHManager.prototype, {
       userManager: this.options.userManager,
       title: this.options.title,
       prompt: this.options.prompt,
-      onClose: () => delete this.clients[clientId]
+      onClose: () => delete this.clients[clientId],
     })
-  }
+  },
 })
-
 
 function SSHClient(options) {
   this.options = options
@@ -69,9 +74,9 @@ function SSHClient(options) {
 
   this.username = null
 
-  this.client.on('authentication', this.onAuth.bind(this))
-  this.client.on('ready', this.onReady.bind(this))
-  this.client.on('end', this.onClose.bind(this))
+  this.client.on("authentication", this.onAuth.bind(this))
+  this.client.on("ready", this.onReady.bind(this))
+  this.client.on("end", this.onClose.bind(this))
 }
 
 Object.assign(SSHClient.prototype, {
@@ -80,7 +85,7 @@ Object.assign(SSHClient.prototype, {
       writeLn: null,
       write: (val, opts) => {
         opts || (opts = {})
-        val || (val = '')
+        val || (val = "")
 
         if (opts.bold) {
           this.term.bold(val)
@@ -104,8 +109,8 @@ Object.assign(SSHClient.prototype, {
           this.term.nextLine()
         }
       },
-      prompt: (promptTxt = '', opts, cb) => {
-        if (typeof opts === 'function') {
+      prompt: (promptTxt = "", opts, cb) => {
+        if (typeof opts === "function") {
           cb = opts
           opts = undefined
         }
@@ -118,7 +123,7 @@ Object.assign(SSHClient.prototype, {
 
         this.term(promptTxt)
         this.term.inputField(inputOpts, cb)
-      }
+      },
     }
     cmdManOpts.writeLn = (val, opts) => {
       opts || (opts = {})
@@ -147,18 +152,21 @@ Object.assign(SSHClient.prototype, {
   },
 
   onAuth(ctx) {
-    if (ctx.method == 'password') {
-      this.userManager.verifyUser(ctx.username, ctx.password).then(result => {
-        if (result) {
-          this.username = ctx.username
-          ctx.accept()
-        } else {
+    if (ctx.method == "password") {
+      this.userManager
+        .verifyUser(ctx.username, ctx.password)
+        .then((result) => {
+          if (result) {
+            this.username = ctx.username
+            ctx.accept()
+          } else {
+            ctx.reject()
+          }
+        })
+        .catch((err) => {
           ctx.reject()
-        }
-      }).catch(err => {
-        ctx.reject()
-      })
-    } else if (ctx.method == 'publickey') {
+        })
+    } else if (ctx.method == "publickey") {
       ctx.reject()
     } else {
       ctx.reject()
@@ -166,20 +174,20 @@ Object.assign(SSHClient.prototype, {
   },
 
   onReady() {
-    this.client.on('session', (accept, reject) => {
+    this.client.on("session", (accept, reject) => {
       this.session = accept()
 
       this.session
-        .once('pty', (accept, reject, info) => {
+        .once("pty", (accept, reject, info) => {
           this.ptyInfo = info
           accept && accept()
         })
-        .on('window-change', (accept, reject, info) => {
+        .on("window-change", (accept, reject, info) => {
           Object.assign(this.ptyInfo, info)
           this._resize()
           accept && accept()
         })
-        .once('shell', (accept, reject) => {
+        .once("shell", (accept, reject) => {
           this.stream = accept()
           this._initCmdMan()
           this._initStream()
@@ -195,14 +203,14 @@ Object.assign(SSHClient.prototype, {
   },
 
   onKey(name, matches, data) {
-    if (name === 'CTRL_L') {
+    if (name === "CTRL_L") {
       this.clearScreen()
-    } else if (name === 'CTRL_C') {
+    } else if (name === "CTRL_C") {
       this.inputActive = false
       this.inputField.abort()
-      this.term('\n^^C\n')
+      this.term("\n^^C\n")
       this.prompt()
-    } else if (name === 'CTRL_D') {
+    } else if (name === "CTRL_D") {
       let input = this.inputField.getInput()
       if (!input.length) {
         this.term.nextLine()
@@ -216,7 +224,7 @@ Object.assign(SSHClient.prototype, {
   _resize() {
     let term = this.term
     if (this.term) {
-      this.term.stdout.emit('resize')
+      this.term.stdout.emit("resize")
     }
   },
 
@@ -225,8 +233,8 @@ Object.assign(SSHClient.prototype, {
     stream.name = this.title
     stream.isTTY = true
     stream.setRawMode = () => {}
-    stream.on('error', error => {
-      console.error('SSH stream error:', error.message)
+    stream.on("error", (error) => {
+      console.error("SSH stream error:", error.message)
     })
   },
 
@@ -236,10 +244,10 @@ Object.assign(SSHClient.prototype, {
       master_fd: newPty.master,
       slave_fd: newPty.slave,
       master: new tty.WriteStream(newPty.master),
-      slave: new tty.ReadStream(newPty.slave)
+      slave: new tty.ReadStream(newPty.slave),
     }
     this.pty.slave.getWindowSize = () => {
-      return [ this.ptyInfo.cols, this.ptyInfo.rows ]
+      return [this.ptyInfo.cols, this.ptyInfo.rows]
     }
     this.stream.stdin.pipe(this.pty.master)
     this.pty.master.pipe(this.stream.stdout)
@@ -248,15 +256,15 @@ Object.assign(SSHClient.prototype, {
   _initTerm() {
     let stream = this.stream
 
-    let term = this.term = termkit.createTerminal({
+    let term = (this.term = termkit.createTerminal({
       stdin: this.pty.slave,
       stdout: this.pty.slave,
       stderr: this.pty.slave,
       generic: this.ptyInfo.term,
-      appName: this.title
-    })
+      appName: this.title,
+    }))
 
-    term.on('key', this.onKey.bind(this))
+    term.on("key", this.onKey.bind(this))
     term.windowTitle(this._interpolate(this.title))
     this.clearScreen()
   },
@@ -264,11 +272,11 @@ Object.assign(SSHClient.prototype, {
   _interpolate(str) {
     let varRe = /{@(.+?)}/g
     let vars = {
-      username: this.username
+      username: this.username,
     }
 
     let match
-    while(match = varRe.exec(str)) {
+    while ((match = varRe.exec(str))) {
       if (vars[match[1]]) {
         str = str.replace(match[0], vars[match[1]])
       }
@@ -289,53 +297,56 @@ Object.assign(SSHClient.prototype, {
 
     if (!this.inputActive) {
       this.inputActive = true
-      this.inputField = term.inputField({
-        history: this.cmdHistory,
-        autoComplete: Object.keys(this.cmdMan.commands),
-        autoCompleteMenu: true
-      }, (error, input) => {
-        this.inputActive = false
-        term.nextLine()
+      this.inputField = term.inputField(
+        {
+          history: this.cmdHistory,
+          autoComplete: Object.keys(this.cmdMan.commands),
+          autoCompleteMenu: true,
+        },
+        (error, input) => {
+          this.inputActive = false
+          term.nextLine()
 
-        if (error) {
-          return term.error(error.message || error)
-        }
+          if (error) {
+            return term.error(error.message || error)
+          }
 
-        if (!input) {
-          return this.prompt()
-        }
-        input[0] !== ' ' && this.cmdHistory.push(input)
+          if (!input) {
+            return this.prompt()
+          }
+          input[0] !== " " && this.cmdHistory.push(input)
 
-        if (input === 'exit') {
-          // This is delayed briefly so the newline can be echoed to the client, creating cleaner output when exiting
-          setTimeout(this.close.bind(this))
-        } else if (input === 'clear') {
-          this.clearScreen()
-        } else if (input) {
-          this.cmdMan.runCmd(input, this.username)
-            .then(output => {
-              if (typeof output !== 'string') {
-                output = JSON.stringify(output, null, '  ')
-              }
-              this.term(output)
-              this.term.nextLine()
-              this.prompt()
-            })
-            .catch(err => {
-              if (typeof err !== 'string') {
-                err = err.message || JSON.stringify(err, null, '  ')
-              }
-              this.term.red.error(err)
-              this.term.nextLine()
-              this.prompt()
-            })
-        } else {
-          this.prompt()
-        }
-      })
+          if (input === "exit") {
+            // This is delayed briefly so the newline can be echoed to the client, creating cleaner output when exiting
+            setTimeout(this.close.bind(this))
+          } else if (input === "clear") {
+            this.clearScreen()
+          } else if (input) {
+            this.cmdMan
+              .runCmd(input, this.username)
+              .then((output) => {
+                if (typeof output !== "string") {
+                  output = JSON.stringify(output, null, "  ")
+                }
+                this.term(output)
+                this.term.nextLine()
+                this.prompt()
+              })
+              .catch((err) => {
+                if (typeof err !== "string") {
+                  err = err.message || JSON.stringify(err, null, "  ")
+                }
+                this.term.red.error(err)
+                this.term.nextLine()
+                this.prompt()
+              })
+          } else {
+            this.prompt()
+          }
+        },
+      )
     }
-  }
+  },
 })
-
 
 export default SSHManager

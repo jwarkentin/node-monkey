@@ -1,7 +1,7 @@
 module.exports = {
   isObject(value) {
     let type = typeof value
-    return !!value && (type == 'object' || type == 'function')
+    return !!value && (type == "object" || type == "function")
   },
 
   invert(obj) {
@@ -13,5 +13,5 @@ module.exports = {
     }
 
     return inverted
-  }
+  },
 }

@@ -1,6 +1,6 @@
-import _ from 'lodash'
-import utils from './utils'
-import minimist from 'minimist'
+import _ from "lodash"
+import utils from "./utils"
+import minimist from "minimist"
 
 function CommandManager() {
   this.commands = {}
@@ -12,29 +12,32 @@ Object.assign(CommandManager.prototype, {
       throw new Error(`'${cmdName}' is already registered as a command`)
     }
 
-    if (typeof opts === 'function') {
+    if (typeof opts === "function") {
       exec = opts
       opts = {}
     }
 
     this.commands[cmdName] = {
       opts,
-      exec
+      exec,
     }
   },
 
   bindI(ioInterface) {
     let boundI = _.mapValues(this)
-    Object.assign(boundI, _.mapValues(this.constructor.prototype, (val, key) => {
-      if (val instanceof Function) {
-        if (key === 'runCmd') {
-          return val.bind(this, ioInterface)
+    Object.assign(
+      boundI,
+      _.mapValues(this.constructor.prototype, (val, key) => {
+        if (val instanceof Function) {
+          if (key === "runCmd") {
+            return val.bind(this, ioInterface)
+          }
+          return val.bind(this)
+        } else {
+          return val
         }
-        return val.bind(this)
-      } else {
-        return val
-      }
-    }))
+      }),
+    )
 
     return boundI
   },
@@ -42,8 +45,8 @@ Object.assign(CommandManager.prototype, {
   runCmd(io, rawCommand, asUser) {
     return new Promise((resolve, reject) => {
       let parsed = utils.parseCommand(rawCommand),
-          cmdName = parsed[0],
-          cmd = this.commands[cmdName]
+        cmdName = parsed[0],
+        cmd = this.commands[cmdName]
 
       if (!asUser) {
         return reject(`Missing user context for command '${cmdName}'`)
@@ -54,20 +57,21 @@ Object.assign(CommandManager.prototype, {
       }
 
       let args = minimist(parsed.slice(1))
-      cmd.exec({
+      cmd.exec(
+        {
           args,
-          username: asUser
-        }, {
+          username: asUser,
+        },
+        {
           write: io.write,
           writeLn: io.writeLn,
           error: io.error,
-          prompt: io.prompt
+          prompt: io.prompt,
         },
-        resolve
+        resolve,
       )
     })
-  }
+  },
 })
-
 
 export default CommandManager

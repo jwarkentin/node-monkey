@@ -1,9 +1,9 @@
-import utils from './utils'
-import cycle from '../lib/cycle'
-import convertStyles from './convert-styles'
+import utils from "./utils"
+import cycle from "../lib/cycle"
+import convertStyles from "./convert-styles"
 
 let initialized = false
-let monkey = window.monkey = {
+let monkey = (window.monkey = {
   cmdId: 0,
   runningCmd: {},
   connect: null,
@@ -17,16 +17,15 @@ let monkey = window.monkey = {
     initialized = true
 
     return new Promise((resolve, reject) => {
-      utils
-        .addHeadScript(`${utils.getClientHost()}/socket.io/socket.io.js`)
-        .addEventListener('load', () => {
-          initClient().then(client => {
+      utils.addHeadScript(`${utils.getClientHost()}/socket.io/socket.io.js`).addEventListener("load", () => {
+        initClient()
+          .then((client) => {
             let authAttempts = 0,
-                creds = null,
-                stylize = convertStyles,
-                settings = {
-                  convertStyles: true
-                }
+              creds = null,
+              stylize = convertStyles,
+              settings = {
+                convertStyles: true,
+              }
 
             monkey.client = client
             monkey.connect = client.connect.bind(client)
@@ -44,16 +43,16 @@ let monkey = window.monkey = {
 
               let username, password
               if (!creds) {
-                username = prompt('Node Monkey username')
-                password = prompt('Node Monkey password')
+                username = prompt("Node Monkey username")
+                password = prompt("Node Monkey password")
                 creds = { username, password }
               }
 
               ++authAttempts
-              client.emit('auth', creds)
+              client.emit("auth", creds)
             }
 
-            client.on('cmdResponse', (cmdId, error, output) => {
+            client.on("cmdResponse", (cmdId, error, output) => {
               if (monkey.runningCmd[cmdId]) {
                 let { resolve, reject } = monkey.runningCmd[cmdId]
                 delete monkey.runningCmd[cmdId]
@@ -66,52 +65,61 @@ let monkey = window.monkey = {
               }
             })
 
-            client.on('settings', data => {
+            client.on("settings", (data) => {
               Object.assign(settings, data)
 
               if (!settings.convertStyles) {
-                stylize = function(args, trace) {
-                  return args.concat([ trace ])
+                stylize = function (args, trace) {
+                  return args.concat([trace])
                 }
               }
             })
 
-            client.on('auth', doAuth)
+            client.on("auth", doAuth)
 
-            client.on('authResponse', (result, err) => {
+            client.on("authResponse", (result, err) => {
               if (!result) {
                 creds = null
-                console.warn('Auth failed:', err)
+                console.warn("Auth failed:", err)
                 doAuth()
               }
             })
 
-            client.on('console', data => {
+            client.on("console", (data) => {
               data = cycle.retrocycle(data)
 
-              let trace, cdata = data.callerInfo
+              let trace,
+                cdata = data.callerInfo
               if (cdata) {
-                trace = ' -- Called from ' + cdata.file + ':' + cdata.line + ':' + cdata.column + (cdata.caller ? '(function ' + cdata.caller + ')' : '')
+                trace =
+                  " -- Called from " +
+                  cdata.file +
+                  ":" +
+                  cdata.line +
+                  ":" +
+                  cdata.column +
+                  (cdata.caller ? "(function " + cdata.caller + ")" : "")
               }
-              if (data.method === 'dir') {
+              if (data.method === "dir") {
                 console.dir(data.args[0])
                 if (trace) {
-                  console.log.apply(console, stylize(['^^^'], trace))
+                  console.log.apply(console, stylize(["^^^"], trace))
                 }
               } else {
                 console[data.method].apply(console, stylize(data.args, trace))
               }
             })
 
-            client.on('prompt', (promptId, promptTxt, opts) => {
+            client.on("prompt", (promptId, promptTxt, opts) => {
               opts || (opts = {})
 
-              client.emit('promptResponse', promptId, prompt(promptTxt))
+              client.emit("promptResponse", promptId, prompt(promptTxt))
             })
 
             resolve()
-          }).catch(reject)
-        })
+          })
+          .catch(reject)
+      })
     })
   },
 
@@ -123,12 +131,12 @@ let monkey = window.monkey = {
 
     let p = new Promise((resolve, reject) => {
       let cmdId = monkey.cmdId++
-      monkey.client.emit('cmd', cmdId, command)
+      monkey.client.emit("cmd", cmdId, command)
       monkey.runningCmd[cmdId] = { resolve, reject }
     })
 
     if (!noOutput) {
-      p.then(output => output !== null && console.log(output)).catch(error => {
+      p.then((output) => output !== null && console.log(output)).catch((error) => {
         if (error !== null) {
           console.error(error)
           alert(error.message)
@@ -137,30 +145,29 @@ let monkey = window.monkey = {
     }
 
     return p
-  }
-}
+  },
+})
 
 function initClient() {
   return new Promise((resolve, reject) => {
     let client = io(`${location.origin}/nm`)
 
-    client.on('connect', function() {
-    })
+    client.on("connect", function () {})
 
-    client.on('error', err => {
+    client.on("error", (err) => {
       console.error(err)
     })
 
-    client.on('connect_error', err => {
+    client.on("connect_error", (err) => {
       console.error(err)
     })
 
-    client.on('reconnect_error', err => {
+    client.on("reconnect_error", (err) => {
       console.error(err)
     })
 
-    client.on('connect_timeout', () => {
-      console.error(new Error('Socket.IO connection timed out'))
+    client.on("connect_timeout", () => {
+      console.error(new Error("Socket.IO connection timed out"))
     })
 
     resolve(client)

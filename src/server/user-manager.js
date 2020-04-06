@@ -1,10 +1,10 @@
-import fs from 'fs'
-import scrypt from 'scrypt'
+import fs from "fs"
+import scrypt from "scrypt"
 
 let useNew = false
 try {
-  Buffer.from('', 'base64')
-} catch(err) {
+  Buffer.from("", "base64")
+} catch (err) {
   useNew = true
 }
 
@@ -22,17 +22,23 @@ function UserManager(options) {
   this.userFileCreated = false
 
   if (!options.silent) {
-    this.getUsers().then(users => {
+    this.getUsers().then((users) => {
       let usernames = Object.keys(users)
       if (!usernames.length) {
-        if (process.env.NODE_ENV === 'production') {
-          console.warn(`No users have been created and you are running in production mode so you will not be able to login.\n`)
+        if (process.env.NODE_ENV === "production") {
+          console.warn(
+            `No users have been created and you are running in production mode so you will not be able to login.\n`,
+          )
         } else {
-          console.warn(`It seems there are no users and you are not running in production mode so you will not be able to login. This is probably a bug. Please report it!\n`)
+          console.warn(
+            `It seems there are no users and you are not running in production mode so you will not be able to login. This is probably a bug. Please report it!\n`,
+          )
         }
-      } else if (usernames.length === 1 && usernames[0] === 'guest') {
-        console.warn(`[WARN] No users detected. You can login with default user 'guest' and password 'guest' when prompted.\n` +
-          `This user will be disabled when you create a user account.\n`)
+      } else if (usernames.length === 1 && usernames[0] === "guest") {
+        console.warn(
+          `[WARN] No users detected. You can login with default user 'guest' and password 'guest' when prompted.\n` +
+            `This user will be disabled when you create a user account.\n`,
+        )
       }
     })
   }
@@ -47,24 +53,27 @@ Object.assign(UserManager.prototype, {
     try {
       if (!this.userFile) {
         let err = new Error(`No user file specified`)
-        err.code = 'ENOENT'
+        err.code = "ENOENT"
         throw err
       }
 
       this.userFileCache = JSON.parse(fs.readFileSync(this.userFile))
       this.userFileCreated = true
-      setTimeout(() => { this.userFileCache = null }, 5000)
+      setTimeout(() => {
+        this.userFileCache = null
+      }, 5000)
 
       return this.userFileCache
-    } catch(err) {
-      if (err.code === 'ENOENT') {
-        return process.env.NODE_ENV === 'production'
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        return process.env.NODE_ENV === "production"
           ? {}
           : {
-            guest: {
-              password: 'c2NyeXB0AAEAAAABAAAAAZS+vE1+zh4nY6vN21zM3dIzpJVImr8OrK0iJoA+iUPk7WIdo3RhgeATzWENocd7gKNbEKVgq6LbXqrmVjLtnYy5FXyfRCtEtmjUuj19AqcW'
+              guest: {
+                password:
+                  "c2NyeXB0AAEAAAABAAAAAZS+vE1+zh4nY6vN21zM3dIzpJVImr8OrK0iJoA+iUPk7WIdo3RhgeATzWENocd7gKNbEKVgq6LbXqrmVjLtnYy5FXyfRCtEtmjUuj19AqcW",
+              },
             }
-          }
       }
       throw err
     }
@@ -72,16 +81,16 @@ Object.assign(UserManager.prototype, {
 
   _writeFile(data) {
     this.userFileCache = null
-    fs.writeFileSync(this.userFile, JSON.stringify(data, null, '  '))
+    fs.writeFileSync(this.userFile, JSON.stringify(data, null, "  "))
     this.userFileCreated = true
   },
 
   _hashPassword(passwd) {
-    return scrypt.kdfSync(passwd.normalize('NFKC'), { N: 1, r: 1, p: 1 }).toString('base64')
+    return scrypt.kdfSync(passwd.normalize("NFKC"), { N: 1, r: 1, p: 1 }).toString("base64")
   },
 
   _verifyPassword(hash, passwd) {
-    return scrypt.verifyKdfSync(stringToBuffer(hash, 'base64'), passwd.normalize('NFKC'))
+    return scrypt.verifyKdfSync(stringToBuffer(hash, "base64"), passwd.normalize("NFKC"))
   },
 
   createUser(username, password) {
@@ -96,11 +105,11 @@ Object.assign(UserManager.prototype, {
       }
 
       if (!this.userFileCreated) {
-        delete users['guest']
+        delete users["guest"]
       }
 
       users[username] = {
-        password: this._hashPassword(password)
+        password: this._hashPassword(password),
       }
       this._writeFile(users)
       resolve()
@@ -161,12 +170,13 @@ Object.assign(UserManager.prototype, {
 
   verifyUser(username, passwd) {
     return new Promise((resolve, reject) => {
-      this.getUserData(username).then(userData => {
-        resolve(this._verifyPassword(userData.password, passwd))
-      }).catch(reject)
+      this.getUserData(username)
+        .then((userData) => {
+          resolve(this._verifyPassword(userData.password, passwd))
+        })
+        .catch(reject)
     })
-  }
+  },
 })
-
 
 export default UserManager

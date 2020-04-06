@@ -12,19 +12,19 @@ It is incredibly easy to get started (see [Quick Usage](#quick-usage) below) but
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Usage](#quick-usage)
-- [Server](doc/server.md)
-  - [Provide your own](doc/server.md#provide-your-own)
-  - [Options](doc/server.md#options)
-  - [Properties](doc/server.md#properties)
-  - [Methods](doc/server.md#methods)
-- [Client (browser)](doc/client.md)
-  - [Properties](doc/client.md#properties)
-  - [Methods](doc/client.md#methods)
-- [SSH](doc/ssh.md)
-  - [Setup](doc/ssh.md#setup)
-  - [Usage](doc/ssh.md#usage)
-- [User Management](doc/user-management.md)
-- [Contributing](doc/contributing.md)
+- [Server](doc/usage/server.md)
+  - [Provide your own](doc/usage/server.md#provide-your-own)
+  - [Options](doc/usage/server.md#options)
+  - [Properties](doc/usage/server.md#properties)
+  - [Methods](doc/usage/server.md#methods)
+- [Client (browser)](doc/usage/client.md)
+  - [Properties](doc/usage/client.md#properties)
+  - [Methods](doc/usage/client.md#methods)
+- [SSH](doc/usage/ssh.md)
+  - [Setup](doc/usage/ssh.md#setup)
+  - [Usage](doc/usage/ssh.md#usage)
+- [User Management](doc/usage/user-management.md)
+- [Contributing](doc/usage/contributing.md)
 - [Changelog](CHANGELOG.md)
 - [MIT License](LICENSE.md)
 
@@ -36,10 +36,10 @@ I searched Google and found projects like [node-inspector](https://github.com/da
 
 ## Features
 
-* Log console output from your app to a browser console for easier inspection
-  - Provides a stream for those using Bunyan (see [here](doc/server.md#nodemonkeybunyan_stream))
-* Provides SSH capability so you can get a shell into your app for inspection, debugging or controlling your app
-* Register commands for your application that can be executed from the browser console or the SSH interface
+- Log console output from your app to a browser console for easier inspection
+  - Provides a stream for those using Bunyan (see [here](doc/usage/server.md#nodemonkeybunyan_stream))
+- Provides SSH capability so you can get a shell into your app for inspection, debugging or controlling your app
+- Register commands for your application that can be executed from the browser console or the SSH interface
 
 ## Installation
 
@@ -60,32 +60,36 @@ Although Node Monkey supports many features, getting started is designed to be e
 The simplest usage looks like this:
 
 ```js
-let NodeMonkey = require('node-monkey')
+let NodeMonkey = require("node-monkey")
 NodeMonkey()
 ```
 
-Node Monkey also supports many configuration [options](doc/server.md#options) and named instances. The call takes the form `NodeMonkey([options[, name])`. So, for example, to suppress local console output and only see output in your connected browser or terminal you might do something like this:
+Node Monkey also supports many configuration [options](doc/usage/server.md#options) and named instances. The call takes the form `NodeMonkey([options[, name])`. So, for example, to suppress local console output and only see output in your connected browser or terminal you might do something like this:
 
 ```js
-let NodeMonkey = require('node-monkey')
+let NodeMonkey = require("node-monkey")
 let monkey = NodeMonkey({
   server: {
-    disableLocalOutput: true
-  }
+    disableLocalOutput: true,
+  },
 })
 ```
 
 You can include Node Monkey in all the files within your app that you want and if used like the examples above, each call to `NodeMonkey()` will always return the same instance you first constructed, ignoring any options passed on subsequent calls. However, you may want to construct new instances with different options. To do so, give your instance a name:
 
 ```js
-let NodeMonkey = require('node-monkey')
-let monkey1 = NodeMonkey()          // Creates an instance named 'default'
-let monkey2 = NodeMonkey('george')  // Creates a new instance with default options
-let monkey3 = NodeMonkey({          // Creates a new instance with custom options named 'ninja'
-  server: {
-    silent: true
-  }
-}, 'ninja')
+let NodeMonkey = require("node-monkey")
+let monkey1 = NodeMonkey() // Creates an instance named 'default'
+let monkey2 = NodeMonkey("george") // Creates a new instance with default options
+let monkey3 = NodeMonkey(
+  {
+    // Creates a new instance with custom options named 'ninja'
+    server: {
+      silent: true,
+    },
+  },
+  "ninja",
+)
 ```
 
 If you don't specify a port for additional instances it will automatically be set for you and will just increment from the default (e.g. 50502, 50504 for the websocket server and 50503, 50505 for the SSH server).
@@ -93,8 +97,8 @@ If you don't specify a port for additional instances it will automatically be se
 To get an already constructed instance in another file just call it with the name again:
 
 ```js
-let NodeMonkey = require('node-monkey')
-let monkey3 = NodeMonkey('ninja')
+let NodeMonkey = require("node-monkey")
+let monkey3 = NodeMonkey("ninja")
 ```
 
 When you start your app you will see the following output:
@@ -105,7 +109,7 @@ Node Monkey listening at http://0.0.0.0:50500
 
 To connect your browser simply go to the address it shows in your web browser (`http://0.0.0.0:50500` in this case). If you change the default `host` and `port` bindings or pass in your own server be sure to adjust your URL accordingly. It will prompt you for a username and password. Until you setup a user the default is `guest` and `guest`.
 
-If you provide your own server you can view output in the console of your own web application instead. To see how to provide your own server check out the [documentation](doc/server.md#provide-your-own). You will need to include the following `<script>` tag in your HTML source to integrate Node Monkey output with your app:
+If you provide your own server you can view output in the console of your own web application instead. To see how to provide your own server check out the [documentation](doc/usage/server.md#provide-your-own). You will need to include the following `<script>` tag in your HTML source to integrate Node Monkey output with your app:
 
 ```html
 <script type="text/javascript" src="http://0.0.0.0:50500/monkey.js"></script>
@@ -113,6 +117,6 @@ If you provide your own server you can view output in the console of your own we
 
 **NOTE**: You do NOT have to refresh the page when you restart your Node.js application to continue to receive output. Node Monkey will automatically reconnect.
 
-
 ---
+
 ### LICENSE: [MIT](LICENSE.md)
