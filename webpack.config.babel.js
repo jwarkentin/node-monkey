@@ -5,17 +5,26 @@ import HtmlWebpackPlugin from "html-webpack-plugin"
 
 export default [
   {
+    mode: process.env.NODE_ENV || "development",
     entry: "./src/server/index.js",
     output: {
       path: `${__dirname}/dist`,
       filename: `server.js`,
-      library: "WOSTargetingClient",
+      library: "NodeMonkey",
       libraryExport: "default",
       libraryTarget: "umd",
     },
 
     target: "node",
     externals: [nodeExternals()],
+    node: {
+      console: false,
+      global: false,
+      process: false,
+      Buffer: false,
+      __filename: false,
+      __dirname: false,
+    },
 
     module: {
       rules: [
@@ -27,13 +36,19 @@ export default [
       ],
     },
 
-    plugins: [new MinifyPlugin()],
+    plugins: [
+      new webpack.BannerPlugin({
+        banner: "require('source-map-support').install();",
+        raw: true,
+      }),
+      new MinifyPlugin(),
+    ],
 
     devtool: "source-map",
   },
   {
+    mode: process.env.NODE_ENV || "development",
     entry: "./src/client/index.js",
-
     output: {
       path: `${__dirname}/dist`,
       filename: `monkey.js`,
@@ -43,9 +58,9 @@ export default [
     },
 
     module: {
-      loaders: [
+      rules: [
         {
-          test: /\.jsx?$/,
+          test: /\.m?js$/,
           exclude: /node_modules/,
           use: ["babel-loader"],
         },
@@ -55,6 +70,8 @@ export default [
     plugins: [
       new HtmlWebpackPlugin({
         title: "NodeMonkey Client Test",
+        inject: "head",
+        template: `${__dirname}/src/client/index.html`,
       }),
       new MinifyPlugin(),
     ],

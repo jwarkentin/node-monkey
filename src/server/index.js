@@ -1,7 +1,7 @@
 import os from "os"
 import fs from "fs"
 import path from "path"
-import EventEmitter from "events"
+import { EventEmitter } from "events"
 import { execSync } from "child_process"
 import _ from "lodash"
 import keypair from "keypair"
@@ -14,6 +14,7 @@ import CmdMan from "./command-manager"
 import UserManager from "./user-manager"
 import utils from "./utils"
 
+const NODE_ENV = process.env.NODE_ENV
 const DEFAULT_PORT = 50500
 const CONSOLE = _.mapValues(console)
 const ConsoleEvent = new EventEmitter()
@@ -21,130 +22,107 @@ const HANDLE_TYPES = ["log", "info", "warn", "error", "dir"]
 
 let attachedCount = 0
 
-function NodeMonkey(opts) {
-  const NODE_ENV = process.NODE_ENV
-  let options = (this.options = _.merge(
-    {
-      server: {
-        // You can provide your own server and Node Monkey will use it instead of creating its own.
-        // However, this MUST be the underlying http server instance, not the express/restify/whatever app.
-        server: null,
+class NodeMonkey {
+  msgBuffer = []
+  BUNYAN_STREAM = bunyanStream(this)
+  _attached = false
+  _typeHandlers = {}
 
-        host: "0.0.0.0",
-        port: DEFAULT_PORT,
-        silent: false,
-        bufferSize: 50,
-        attachOnStart: true,
+  constructor(opts) {
+    const options = (this.options = _.merge(
+      {
+        server: {
+          // You can provide your own server and Node Monkey will use it instead of creating its own.
+          // However, this MUST be the underlying http server instance, not the express/restify/whatever app.
+          server: null,
 
-        // Only takes effect when Node Monkey is attached to the console
-        disableLocalOutput: false,
+          host: "0.0.0.0",
+          port: DEFAULT_PORT,
+          silent: false,
+          bufferSize: 50,
+          attachOnStart: true,
+
+          // Only takes effect when Node Monkey is attached to the console
+          disableLocalOutput: false,
+        },
+        client: {
+          showCallerInfo: NODE_ENV === "production" ? false : true,
+          convertStyles: true,
+        },
+        ssh: {
+          enabled: false,
+          host: "0.0.0.0",
+          port: DEFAULT_PORT + 1,
+          title: `Node Monkey on ${os.hostname()}`,
+          prompt: `[Node Monkey] {@username}@${os.hostname()}:`,
+        },
+
+        // Needed for storing things like user files and SSH host keys
+        dataDir: null,
       },
-      client: {
-        showCallerInfo: NODE_ENV === "production" ? false : true,
-        convertStyles: true,
-      },
-      ssh: {
-        enabled: false,
-        host: "0.0.0.0",
-        port: DEFAULT_PORT + 1,
-        title: `Node Monkey on ${os.hostname()}`,
-        prompt: `[Node Monkey] {@username}@${os.hostname()}:`,
-      },
+      opts,
+    ))
 
-      // Needed for storing things like user files and SSH host keys
-      dataDir: null,
-    },
-    opts,
-  ))
+    this._createLocal()
+    this._createRemote()
+    this._setupCmdMan()
+    this._setupUserManager()
+    this._setupServer()
+    this._setupSSH()
 
-  this.msgBuffer = []
-  this.BUNYAN_STREAM = bunyanStream(this)
-  this._attached = false
-  this._typeHandlers = {}
+    if (options.server.attachOnStart) {
+      this.attachConsole()
+    }
 
-  this._createLocal()
-  this._createRemote()
-  this._setupCmdMan()
-  this._setupUserManager()
-  this._setupServer()
-  this._setupSSH()
-
-  if (options.server.attachOnStart) {
-    this.attachConsole()
+    // TODO: Deprecated. Remove everything after this line by v1.0.0
+    console.local = _.mapValues(this.local, (fn, method) => {
+      const localFn = (...args) => {
+        return fn(...args)
+      }
+      Object.defineProperty(localFn, "name", { value: method })
+      return localFn
+    })
+    console.remote = _.mapValues(this.remote, (fn, method) => {
+      const remoteFn = (...args) => {
+        return fn({ callerStackDistance: 2 }, ...args)
+      }
+      Object.defineProperty(remoteFn, "name", { value: method })
+      return remoteFn
+    })
   }
 
-  // TODO: Deprecated. Remove everything after this line by v1.0.0
-  let self = this
-  let warned = false
-  function warnConsole() {
-    if (!warned) {
-      warned = true
-      let warningMsg = [
-        `[Deprecation Warning] Running Node Monkey with 'augmentConsole' enabled.`,
-        `This is strongly discouraged and will be removed in the v1.0.0 release.`,
-        `See here for more info: https://github.com/jwarkentin/node-monkey/releases/tag/v1.0.0-rc.1`,
-      ].join(" ")
-      self.local.warn(warningMsg)
-      self.remote.warn(warningMsg)
-    }
-  }
-
-  // This is here because webpack renames the function and for whatever reason the stack trace doesn't show the right name,
-  // even with proper source maps. This is all just temporary anyway so I'm hacking it.
-  Object.defineProperty(warnConsole, "name", { value: "warnConsole" })
-
-  console.local = _.mapValues(this.local, (fn, method) => {
-    let localFn = function () {
-      warnConsole()
-      return fn.apply(console, arguments)
-    }
-    Object.defineProperty(localFn, "name", { value: method })
-    return localFn
-  })
-  console.remote = _.mapValues(this.remote, (fn, method) => {
-    let remoteFn = function () {
-      warnConsole()
-      return fn.apply({ callerStackDistance: 2 }, arguments)
-    }
-    Object.defineProperty(remoteFn, "name", { value: method })
-    return remoteFn
-  })
-}
-
-_.assign(NodeMonkey.prototype, {
   _getServerProtocol(server) {
     if (server._events && server._events.tlsClientError) {
       return "https"
     }
     return "http"
-  },
+  }
 
   getServerPaths() {
-    let basePath = path.normalize(`${__dirname}/../dist`)
+    const basePath = path.normalize(`${__dirname}/../dist`)
 
     return {
       basePath,
       client: "monkey.js",
       index: "index.html",
     }
-  },
+  }
 
   _displayServerWelcome() {
     if (!this.options.server.silent) {
-      let server = this.options.server.server
+      const server = this.options.server.server
       if (server.listening) {
-        let proto = this._getServerProtocol(server)
-        let { address, port } = server.address()
+        const proto = this._getServerProtocol(server)
+        const { address, port } = server.address()
         this.local.log(`Node Monkey listening at ${proto}://${address}:${port}`)
       } else {
         server.on("listening", this._displayServerWelcome.bind(this))
       }
     }
-  },
+  }
 
   _setupCmdMan() {
-    this._cmdMan = new CmdMan()
-    let cmdMan = (this.cmdMan = this._cmdMan.bindI({
+    this._cmdMan = new CmdMan({
       write: (val, opts) => {
         console.log(val)
       },
@@ -163,29 +141,27 @@ _.assign(NodeMonkey.prototype, {
 
         console.warn("Prompt not implemented")
       },
-    }))
+    })
 
-    this.addCmd = cmdMan.addCmd
-    this.runCmd = cmdMan.runCmd
-  },
+    this.addCmd = this._cmdMan.addCmd
+    this.runCmd = this._cmdMan.runCmd
+  }
 
   _setupUserManager() {
-    let dataDir = this.options.dataDir
-    let userMan = (this.userManager = new UserManager({
+    const dataDir = this.options.dataDir
+    const userMan = (this.userManager = new UserManager({
       userFile: dataDir ? `${dataDir}/users.json` : undefined,
       silent: this.options.server.silent,
     }))
 
-    this.cmdMan.addCmd("showusers", (opts, term, done) => {
-      let users = userMan.getUsers().then((users) => {
-        term.writeLn(Object.keys(users).join("\n"))
-        done()
-      })
+    this.addCmd("showusers", async (opts, term) => {
+      const users = await userMan.getUsers()
+      term.writeLn(Object.keys(users).join("\n"))
     })
 
-    this.cmdMan.addCmd("adduser", (opts, term, done) => {
-      let args = opts.args,
-        username = args._[0]
+    this.addCmd("adduser", (opts, term, done) => {
+      const args = opts.args
+      const username = args._[0]
 
       if (!username) {
         term.error(`You must specify a username`)
@@ -210,9 +186,9 @@ _.assign(NodeMonkey.prototype, {
       })
     })
 
-    this.cmdMan.addCmd("deluser", (opts, term, done) => {
-      let args = opts.args,
-        username = args._[0]
+    this.addCmd("deluser", (opts, term, done) => {
+      const args = opts.args
+      const username = args._[0]
 
       if (!username) {
         term.error(`You must specify a username`)
@@ -226,9 +202,9 @@ _.assign(NodeMonkey.prototype, {
         .then(done)
     })
 
-    this.cmdMan.addCmd("passwd", (opts, term, done) => {
-      let args = opts.args,
-        user = opts.username
+    this.addCmd("passwd", (opts, term, done) => {
+      const args = opts.args
+      const user = opts.username
 
       term.prompt("Current password: ", { hideInput: true }, (error, curpwd) => {
         term.writeLn()
@@ -257,14 +233,14 @@ _.assign(NodeMonkey.prototype, {
         })
       })
     })
-  },
+  }
 
   _setupServer() {
-    let options = this.options,
-      server = options.server.server
+    const options = this.options
+    let server = options.server.server
 
     if (!server) {
-      let serverApp = setupServer({
+      const serverApp = setupServer({
         name: "Node Monkey",
       })
       server = this.options.server.server = serverApp.server
@@ -282,20 +258,20 @@ _.assign(NodeMonkey.prototype, {
       onAuth: this._sendMessages.bind(this),
       clientSettings: options.client,
     })
-  },
+  }
 
   _setupSSH() {
-    let sshOpts = this.options.ssh
+    const sshOpts = this.options.ssh
     if (sshOpts.enabled) {
-      let dataDir = this.options.dataDir
+      const dataDir = this.options.dataDir
       if (!dataDir) {
         throw new Error(`Options 'dataDir' is required to enable SSH`)
       }
 
       // Get host keys
-      let files = fs.readdirSync(dataDir),
-        keyRe = /\.key$/,
-        hostKeys = []
+      const files = fs.readdirSync(dataDir)
+      const keyRe = /\.key$/
+      let hostKeys = []
       for (let file of files) {
         if (keyRe.test(file)) {
           hostKeys.push(`${dataDir}/${file}`)
@@ -322,13 +298,13 @@ _.assign(NodeMonkey.prototype, {
         hostKeys,
       })
     }
-  },
+  }
 
   // TODO: This whole process of trying to identify the true source of the call is so fucking messy and fragile. Need to think
   //       of a better way to identify the call source and rewrite all this shitty code handling it right now.
   _getCallerInfo(callerStackDistance) {
     if (this.options.client.showCallerInfo) {
-      let stack = utils.getStack().map((frame) => {
+      const stack = utils.getStack().map((frame) => {
         return {
           functionName: frame.getFunctionName(),
           methodName: frame.getMethodName(),
@@ -340,8 +316,8 @@ _.assign(NodeMonkey.prototype, {
 
       let caller = stack.find((frame, index, stack) => {
         // We're either looking for a console method call or a bunyan log call. This logic will break down if method names change.
-        let twoBack = stack[index - 2]
-        let sixBack = stack[index - 4]
+        const twoBack = stack[index - 2]
+        const sixBack = stack[index - 4]
         if (twoBack && twoBack.functionName === "Logger._emit" && /\/bunyan\.js$/.test(twoBack.fileName)) {
           return true
         } else if (twoBack && sixBack && twoBack.methodName === "emit" && sixBack.methodName === "_sendMessage") {
@@ -362,7 +338,7 @@ _.assign(NodeMonkey.prototype, {
         }
       }
     }
-  },
+  }
 
   _sendMessage(info, callerStackDistance) {
     this.msgBuffer.push({
@@ -374,10 +350,10 @@ _.assign(NodeMonkey.prototype, {
       this.msgBuffer.shift()
     }
     this._sendMessages()
-  },
+  }
 
   _sendMessages() {
-    let remoteClients = this.remoteClients
+    const remoteClients = this.remoteClients
     if (_.size(remoteClients.adapter.rooms["authed"])) {
       _.each(this.msgBuffer, (info) => {
         remoteClients.to("authed").emit("console", cycle.decycle(info))
@@ -385,30 +361,30 @@ _.assign(NodeMonkey.prototype, {
 
       this.msgBuffer = []
     }
-  },
+  }
 
   _createLocal() {
     // NOTE: The console functions here should not be wrapped since these values are used to restore the defaults
     //       when `detachConsole()` is called.
     this.local = CONSOLE
-  },
+  }
 
   _createRemote() {
-    let self = this
     let remote = (this.remote = {})
     HANDLE_TYPES.forEach((method) => {
-      self.remote[method] = function () {
-        self._sendMessage(
+      this.remote[method] = (...args) => {
+        const stackdist = args[0] && args[0].callerStackDistance
+        this._sendMessage(
           {
             method,
-            args: Array.prototype.slice.call(arguments),
+            args: stackdist ? args.slice(1) : args,
           },
-          this.callerStackDistance ? this.callerStackDistance + 1 : 2,
+          stackdist ? stackdist + 1 : 2,
         )
       }
       Object.defineProperty(remote[method], "name", { value: method })
     })
-  },
+  }
 
   attachConsole(disableLocalOutput) {
     if (this._attached) {
@@ -419,13 +395,13 @@ _.assign(NodeMonkey.prototype, {
       // If this function is in the process of handling the log call we will try and prevent potential infinite recursion
       let handlersActive = 0
       HANDLE_TYPES.forEach((method) => {
-        console[method] = function () {
+        console[method] = (...args) => {
           if (handlersActive) {
-            return self.local[method].apply(console, arguments)
+            return this.local[method](...args)
           }
 
           ++handlersActive
-          ConsoleEvent.emit(method, ...arguments)
+          ConsoleEvent.emit(method, ...args)
           --handlersActive
         }
         Object.defineProperty(console[method], "name", { value: method })
@@ -434,16 +410,15 @@ _.assign(NodeMonkey.prototype, {
 
     ++attachedCount
 
-    let self = this
     let serverOptions = this.options.server
     disableLocalOutput = disableLocalOutput !== undefined ? disableLocalOutput : serverOptions.disableLocalOutput
 
     _.each(this.remote, (fn, method) => {
-      let handler = (this._typeHandlers[method] = function () {
-        fn.apply({ callerStackDistance: 5 }, arguments)
+      const handler = (this._typeHandlers[method] = (...args) => {
+        fn({ callerStackDistance: 4 }, ...args)
 
         if (!disableLocalOutput) {
-          self.local[method].apply(console, arguments)
+          this.local[method](...args)
         }
       })
       Object.defineProperty(handler, "name", { value: method })
@@ -452,7 +427,7 @@ _.assign(NodeMonkey.prototype, {
     })
 
     this._attached = true
-  },
+  }
 
   detachConsole() {
     Object.assign(console, this.local)
@@ -463,12 +438,12 @@ _.assign(NodeMonkey.prototype, {
       ConsoleEvent.removeListener(method, this._typeHandlers[method])
       delete this._typeHandlers[method]
     })
-  },
-})
+  }
+}
 
-let instances = {}
+const instances = {}
 let lastPort = DEFAULT_PORT - 1
-module.exports = function createInst(options, name = "default") {
+export default function createInst(options, name = "default") {
   if (typeof options === "string") {
     name = options
     options = undefined
@@ -490,4 +465,4 @@ module.exports = function createInst(options, name = "default") {
 }
 
 // Just exporting in case someone needs to wrap this or access the internals for some reason
-module.exports.NodeMonkey = NodeMonkey
+export { NodeMonkey }

@@ -22,7 +22,7 @@
 
 let origJSON = global.JSON,
   JSON = {}
-module.exports = JSON
+export default JSON
 
 if (typeof JSON.decycle !== "function") {
   JSON.decycle = function decycle(object, replacer) {

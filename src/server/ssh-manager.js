@@ -1,85 +1,86 @@
 import fs from "fs"
 import tty from "tty"
-import pty from "pty.js"
+import pty from "node-pty"
 import ssh2 from "ssh2"
 import termkit from "terminal-kit"
 
-function SSHManager(options) {
-  this.options = options = Object.assign(
-    {
-      host: "127.0.0.1",
-      port: 50501,
-      title: "Node Monkey",
-      prompt: "Node Monkey:",
-      silent: false,
-    },
-    options,
-  )
+class SSHManager {
+  options = {
+    host: "127.0.0.1",
+    port: 50501,
+    title: "Node Monkey",
+    prompt: "Node Monkey:",
+    silent: false,
+  }
+  server
+  clients = new Set()
 
-  this.clients = {}
-  this.clientId = 1
+  constructor(options) {
+    options = Object.assign(this.options, options)
 
-  this.server = ssh2.Server(
-    {
-      hostKeys: options.hostKeys.map((file) => {
-        return fs.readFileSync(file)
-      }),
-    },
-    this.onClient.bind(this),
-  )
+    this.server = new ssh2.Server(
+      {
+        hostKeys: options.hostKeys.map((file) => {
+          return fs.readFileSync(file)
+        }),
+      },
+      this.onClient.bind(this),
+    )
 
-  let monkey = this.options.monkey
-  this.server.listen(options.port, options.host, function () {
-    options.silent || monkey.local.log(`SSH listening on ${this.address().port}`)
-  })
-}
+    const monkey = this.options.monkey
+    this.server.listen(options.port, options.host, function () {
+      options.silent || monkey.local.log(`SSH listening on ${this.address().port}`)
+    })
+  }
 
-Object.assign(SSHManager.prototype, {
   shutdown() {
-    let clients = this.clients
-    for (let c of clients) {
+    const clients = this.clients
+    for (const c of clients) {
       c.write("\nShutting down")
       c.close()
     }
-  },
+  }
 
   onClient(client) {
-    let clientId = clientId++
-    this.clients[clientId] = new SSHClient({
-      client,
-      cmdManager: this.options.cmdManager,
-      userManager: this.options.userManager,
-      title: this.options.title,
-      prompt: this.options.prompt,
-      onClose: () => delete this.clients[clientId],
-    })
-  },
-})
+    const { cmdManager, userManager, title, prompt } = this.options
 
-function SSHClient(options) {
-  this.options = options
-  this.client = options.client
-  this.cmdMan = null
-  this.userManager = options.userManager
-  this.session = null
-  this.stream = null
-  this.pty = null
-  this.term = null
-  this.ptyInfo = null
-
-  this.title = options.title
-  this.promptTxt = `${options.prompt} `
-  this.inputActive = false
-  this.cmdHistory = []
-
-  this.username = null
-
-  this.client.on("authentication", this.onAuth.bind(this))
-  this.client.on("ready", this.onReady.bind(this))
-  this.client.on("end", this.onClose.bind(this))
+    this.clients.add(
+      new SSHClient({
+        client,
+        cmdManager,
+        userManager,
+        title,
+        prompt,
+        onClose: () => this.clients.delete(client),
+      }),
+    )
+  }
 }
 
-Object.assign(SSHClient.prototype, {
+class SSHClient {
+  constructor(options) {
+    this.options = options
+    this.client = options.client
+    this.cmdMan = null
+    this.userManager = options.userManager
+    this.session = null
+    this.stream = null
+    this.pty = null
+    this.term = null
+    this.ptyInfo = null
+
+    this.title = options.title
+    this.promptTxt = `${options.prompt} `
+    this.inputActive = false
+    this.cmdHistory = []
+
+    this.username = null
+
+    this.client.on("authentication", this.onAuth.bind(this))
+    this.client.on("ready", this.onReady.bind(this))
+    this.client.on("end", this.onClose.bind(this))
+  }
+
   _initCmdMan() {
     let cmdManOpts = {
       writeLn: null,
@@ -131,25 +132,24 @@ Object.assign(SSHClient.prototype, {
       cmdManOpts.write(val, opts)
     }
     this.cmdMan = this.options.cmdManager.bindI(cmdManOpts)
-  },
+  }
 
-  write(msg, opts) {
-    opts || (opts = {})
+  write(msg, { style = undefined }) {
     if (this.term) {
-      if (opts.style) {
+      if (style) {
         this.term[style](msg)
       } else {
         this.term(msg)
       }
     }
-  },
+  }
 
   close() {
     if (this.stream) {
       this.stream.end()
     }
     this.onClose()
-  },
+  }
 
   onAuth(ctx) {
     if (ctx.method == "password") {
@@ -171,7 +171,7 @@ Object.assign(SSHClient.prototype, {
     } else {
       ctx.reject()
     }
-  },
+  }
 
   onReady() {
     this.client.on("session", (accept, reject) => {
@@ -195,12 +195,12 @@ Object.assign(SSHClient.prototype, {
           this._initTerm()
         })
     })
-  },
+  }
 
   onClose() {
     let onClose = this.options.onClose
     onClose && onClose()
-  },
+  }
 
   onKey(name, matches, data) {
     if (name === "CTRL_L") {
@@ -219,27 +219,26 @@ Object.assign(SSHClient.prototype, {
         }, 0)
       }
     }
-  },
+  }
 
-  _resize() {
-    let term = this.term
-    if (this.term) {
-      this.term.stdout.emit("resize")
+  _resize({ term } = this) {
+    if (term) {
+      term.stdout.emit("resize")
     }
-  },
+  }
 
   _initStream() {
-    let stream = this.stream
+    const stream = this.stream
     stream.name = this.title
     stream.isTTY = true
     stream.setRawMode = () => {}
     stream.on("error", (error) => {
       console.error("SSH stream error:", error.message)
     })
-  },
+  }
 
   _initPty() {
-    let newPty = pty.native.open(this.ptyInfo.cols, this.ptyInfo.rows)
+    const newPty = pty.native.open(this.ptyInfo.cols, this.ptyInfo.rows)
     this.pty = {
       master_fd: newPty.master,
       slave_fd: newPty.slave,
@@ -251,12 +250,10 @@ Object.assign(SSHClient.prototype, {
     }
     this.stream.stdin.pipe(this.pty.master)
     this.pty.master.pipe(this.stream.stdout)
-  },
+  }
 
   _initTerm() {
-    let stream = this.stream
-
-    let term = (this.term = termkit.createTerminal({
+    const term = (this.term = termkit.createTerminal({
       stdin: this.pty.slave,
       stdout: this.pty.slave,
       stderr: this.pty.slave,
@@ -267,7 +264,7 @@ Object.assign(SSHClient.prototype, {
     term.on("key", this.onKey.bind(this))
     term.windowTitle(this._interpolate(this.title))
     this.clearScreen()
-  },
+  }
 
   _interpolate(str) {
     let varRe = /{@(.+?)}/g
@@ -283,12 +280,12 @@ Object.assign(SSHClient.prototype, {
     }
 
     return str
-  },
+  }
 
   clearScreen() {
     this.term.clear()
     this.prompt()
-  },
+  }
 
   prompt() {
     let term = this.term
@@ -346,7 +343,7 @@ Object.assign(SSHClient.prototype, {
         },
       )
     }
-  },
-})
+  }
+}
 
 export default SSHManager

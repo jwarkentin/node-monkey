@@ -1,15 +1,17 @@
 module.exports = (api) => {
-  const target = api.caller((caller) => caller && caller.target)
+  const webpackTarget = api.caller((caller) => caller && caller.target)
+  const targets = webpackTarget === "node" ? { node: true, esmodules: true } : "defaults"
+
   const presets = [
     [
       "@babel/preset-env",
       {
-        [target === "node" ? "target" : undefined]: target,
-        useBuiltIns: target === "web" && "entry",
+        targets,
+        // useBuiltIns: webpackTarget === "web" && "entry",
       },
     ],
   ]
-  const plugins = ["source-map-support", "@babel/proposal-class-properties"]
+  const plugins = ["@babel/plugin-transform-runtime", "@babel/proposal-class-properties"]
   api.cache(true)
 
   return {

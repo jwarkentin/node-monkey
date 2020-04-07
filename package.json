@@ -14,6 +14,7 @@
   "main": "./dist/server.js",
   "scripts": {
     "build": "webpack",
+    "build:dev": "webpack --watch",
     "start": "babel-node src/server/index.js",
     "lint": "eslint src/**/*.js",
     "lint:fix": "npm run lint -- --fix"
@@ -27,12 +28,14 @@
     "url": "https://github.com/jwarkentin/node-monkey.git"
   },
   "dependencies": {
+    "@babel/runtime": "^7.9.2",
     "keypair": "^1.0.1",
     "lodash": "^4.17.15",
     "minimist": "^1.2.5",
-    "pty.js": "^0.3.1",
+    "node-pty": "^0.9.0",
     "restify": "^8.5.1",
-    "scrypt": "^6.0.3",
+    "restify-cors-middleware": "^1.1.1",
+    "scrypt-kdf": "^2.0.1",
     "socket.io": "^2.3.0",
     "source-map-support": "^0.5.16",
     "ssh2": "^0.8.9",
@@ -42,9 +45,11 @@
     "@babel/core": "^7.9.0",
     "@babel/node": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
     "@babel/register": "^7.9.0",
     "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
     "babel-minify-webpack-plugin": "^0.3.1",
     "babel-plugin-source-map-support": "^2.1.1",
     "bunyan": "^1.8.12",
@@ -55,6 +60,7 @@
     "ignore-loader": "^0.1.2",
     "prettier": "^2.0.3",
     "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
     "webpack-node-externals": "^1.7.2"
   }
 }

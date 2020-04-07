@@ -5,8 +5,8 @@ export default Object.assign(
   {
     parseCommand(str) {
       const reg = /"(.*?)"|'(.*?)'|`(.*?)`|([^\s"]+)/gi
-      let arr = [],
-        match
+      const arr = []
+      let match
 
       do {
         match = reg.exec(str)
@@ -29,6 +29,17 @@ export default Object.assign(
       Error.stackTraceLimit = limit
 
       return stack.slice(1)
+    },
+
+    getPromiseObj() {
+      const pobj = {}
+      pobj.promise = new Promise((resolve, reject) => {
+        Object.assign(pobj, {
+          resolve,
+          reject,
+        })
+      })
+      return pobj
     },
   },
   commonUtils,
