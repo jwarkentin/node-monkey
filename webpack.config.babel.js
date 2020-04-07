@@ -1,7 +1,7 @@
 import webpack from "webpack"
 import nodeExternals from "webpack-node-externals"
-import MinifyPlugin from "babel-minify-webpack-plugin"
 import HtmlWebpackPlugin from "html-webpack-plugin"
+import TerserPlugin from "terser-webpack-plugin"
 
 export default [
   {
@@ -13,6 +13,12 @@ export default [
       library: "NodeMonkey",
       libraryExport: "default",
       libraryTarget: "umd",
+    },
+
+    optimization: {
+      minimize: true,
+      nodeEnv: false,
+      minimizer: [new TerserPlugin()],
     },
 
     target: "node",
@@ -41,7 +47,6 @@ export default [
         banner: "require('source-map-support').install();",
         raw: true,
       }),
-      new MinifyPlugin(),
     ],
 
     devtool: "source-map",
@@ -55,6 +60,11 @@ export default [
       library: "NodeMonkey",
       libraryExport: "default",
       libraryTarget: "umd",
+    },
+
+    optimization: {
+      minimize: true,
+      minimizer: [new TerserPlugin()],
     },
 
     module: {
@@ -73,7 +83,6 @@ export default [
         inject: "head",
         template: `${__dirname}/src/client/index.html`,
       }),
-      new MinifyPlugin(),
     ],
 
     devtool: "source-map",
