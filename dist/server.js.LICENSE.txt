@@ -32,11 +32,17 @@
 
 /*! child_process */
 
+/*! dynamic exports */
+
 /*! events */
 
-/*! exports provided: default */
+/*! export NodeMonkey [provided] [no usage info] [missing usage info prevents renaming] */
 
-/*! exports provided: default, NodeMonkey */
+/*! export __esModule [maybe provided (runtime-defined)] [no usage info] [provision prevents renaming (no use info)] */
+
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+
+/*! export default [provided] [used in main] [usage prevents renaming] */
 
 /*! fs */
 
@@ -46,17 +52,29 @@
 
 /*! minimist */
 
-/*! no static exports found */
+/*! namespace exports */
 
 /*! node-pty */
 
 /*! os */
+
+/*! other exports [maybe provided (runtime-defined)] [no usage info] */
+
+/*! other exports [not provided] [no usage info] */
 
 /*! path */
 
 /*! restify */
 
 /*! restify-cors-middleware */
+
+/*! runtime requirements: __webpack_require__, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
+
+/*! runtime requirements: module */
 
 /*! scrypt-kdf */
 
