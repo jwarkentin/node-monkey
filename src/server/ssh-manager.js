@@ -1,8 +1,9 @@
 import fs from "fs"
 import tty from "tty"
-import pty from "node-pty"
+import { native as pty } from "node-pty"
 import ssh2 from "ssh2"
 import termkit from "terminal-kit"
+import CommandInterface from "./command-interface"
 
 class SSHManager {
   options = {
@@ -61,7 +62,7 @@ class SSHClient {
   constructor(options) {
     this.options = options
     this.client = options.client
-    this.cmdMan = null
+    this.cmdInterface = null
     this.userManager = options.userManager
     this.session = null
     this.stream = null
@@ -82,56 +83,57 @@ class SSHClient {
   }
 
   _initCmdMan() {
-    let cmdManOpts = {
-      writeLn: null,
-      write: (val, opts) => {
-        opts || (opts = {})
-        val || (val = "")
+    const writeFn = (val, opts) => {
+      opts || (opts = {})
+      val || (val = "")
 
-        if (opts.bold) {
-          this.term.bold(val)
-        } else {
-          this.term(val)
-        }
+      if (opts.bold) {
+        this.term.bold(val)
+      } else {
+        this.term(val)
+      }
 
-        if (opts.newline) {
-          this.term.nextLine()
-        }
-      },
-      error: (val, opts) => {
-        opts || (opts = {})
-
-        // TODO: Apparently by sending this to stdout there is a timing issue and anything sent to
-        //       stdout appears before this value is sent to stderr for some reason.
-        // this.term.red.error(val)
-        this.term.red(val)
-
-        if (opts.newline) {
-          this.term.nextLine()
-        }
-      },
-      prompt: (promptTxt = "", opts, cb) => {
-        if (typeof opts === "function") {
-          cb = opts
-          opts = undefined
-        }
-        opts || (opts = {})
-
-        let inputOpts = {}
-        if (opts.hideInput) {
-          inputOpts.echo = false
-        }
-
-        this.term(promptTxt)
-        this.term.inputField(inputOpts, cb)
-      },
+      if (opts.newline) {
+        this.term.nextLine()
+      }
     }
-    cmdManOpts.writeLn = (val, opts) => {
+
+    const writeLnFn = (val, opts) => {
       opts || (opts = {})
       opts.newline = true
-      cmdManOpts.write(val, opts)
+      writeFn(val, opts)
     }
-    this.cmdMan = this.options.cmdManager.bindI(cmdManOpts)
+
+    const errorFn = (val, opts) => {
+      opts || (opts = {})
+
+      // TODO: Apparently by sending this to stdout there is a timing issue and anything sent to
+      //       stdout appears before this value is sent to stderr for some reason.
+      // this.term.red.error(val)
+      this.term.red(val)
+
+      if (opts.newline) {
+        this.term.nextLine()
+      }
+    }
+
+    const promptFn = (promptTxt = "", opts, cb) => {
+      if (typeof opts === "function") {
+        cb = opts
+        opts = undefined
+      }
+      opts || (opts = {})
+
+      let inputOpts = {}
+      if (opts.hideInput) {
+        inputOpts.echo = false
+      }
+
+      this.term(promptTxt)
+      this.term.inputField(inputOpts, cb)
+    }
+
+    this.cmdInterface = new CommandInterface(this.options.cmdManager, writeFn, writeLnFn, errorFn, promptFn)
   }
 
   write(msg, { style = undefined }) {
@@ -238,7 +240,7 @@ class SSHClient {
   }
 
   _initPty() {
-    const newPty = pty.native.open(this.ptyInfo.cols, this.ptyInfo.rows)
+    const newPty = pty.open(this.ptyInfo.cols, this.ptyInfo.rows)
     this.pty = {
       master_fd: newPty.master,
       slave_fd: newPty.slave,
@@ -297,7 +299,7 @@ class SSHClient {
       this.inputField = term.inputField(
         {
           history: this.cmdHistory,
-          autoComplete: Object.keys(this.cmdMan.commands),
+          autoComplete: Object.keys(this.options.cmdManager.commands),
           autoCompleteMenu: true,
         },
         (error, input) => {
@@ -319,8 +321,8 @@ class SSHClient {
           } else if (input === "clear") {
             this.clearScreen()
           } else if (input) {
-            this.cmdMan
-              .runCmd(input, this.username)
+            this.options.cmdManager
+              .runCmd(input, this.username, this.cmdInterface)
               .then((output) => {
                 if (typeof output !== "string") {
                   output = JSON.stringify(output, null, "  ")

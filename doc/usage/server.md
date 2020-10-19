@@ -9,15 +9,15 @@ Note that with both of these examples it doesn't matter when you call `listen()`
 **Example with restify**
 
 ```js
-let restify = require('restify')
-let app = restify.createServer()
-let monkey = require('node-monkey')({
+const restify = require('restify')
+const app = restify.createServer()
+const monkey = require('node-monkey')({
   server: {
     server: app.server
   }
 })
 
-let monkeyFiles = monkey.getServerPaths()
+const monkeyFiles = monkey.getServerPaths()
 app.get(/\/monkey\.js$/, restify.serveStatic({
   directory: monkeyFiles.basePath,
   file: monkeyFiles.client
@@ -34,15 +34,15 @@ app.listen(80, '0.0.0.0')
 **Example with express**
 
 ```js
-let app = require('express')()
-let server = require('http').Server(app)
-let monkey = require('node-monkey')({
+const app = require('express')()
+const server = require('http').Server(app)
+const monkey = require('node-monkey')({
   server: {
     server: server
   }
 })
 
-let monkeyFiles = monkey.getServerPaths()
+const monkeyFiles = monkey.getServerPaths()
 app.get('/monkey.js', function(req, res, next) {
   res.sendFile(`${monkeyFiles.basePath}/${monkeyFiles.client}`)
 })
@@ -53,7 +53,6 @@ app.get('/monkey', function(req, res, next) {
 
 server.listen(80, '0.0.0.0')
 ```
-
 
 ## Options
 
@@ -82,6 +81,7 @@ The `options` object you can provide to Node Monkey is nested and hopefully some
 * `dataDir<string>`: To enable user accounts and SSH functionality Node Monkey needs a directory to store a few files in. Without this there is a default `guest` user with password `guest` but SSH cannot be enabled. Generally you will want to commit this directory with the code base of your project that uses Node Monkey.
 
 **Defaults**
+
 ```js
 {
   server: {
@@ -121,7 +121,6 @@ If you provide your own server you can view output in the console of your own we
 <script type="text/javascript" src="/monkey.js"></script>
 ```
 
-
 ## Properties
 
 ### NodeMonkey#BUNYAN_STREAM
@@ -129,11 +128,12 @@ If you provide your own server you can view output in the console of your own we
 If you use the awesome [Bunyan](https://github.com/trentm/node-bunyan) library for logging, you can add Node Monkey as a Bunyan log stream. It is highly recommended that you don't pass `src: true` when creating the logger since there is a performance penalty and it will be ignored since Node Monkey already performs its own optional call traces.
 
 **Example**
-```js
-let monkey = require('node-monkey')()
-let bunyan = require('bunyan')
 
-let logger = bunyan.createLogger({
+```js
+const monkey = require('node-monkey')()
+const bunyan = require('bunyan')
+
+const logger = bunyan.createLogger({
   name: 'app',
   streams: [
     {
@@ -167,7 +167,6 @@ monkey.client.on('mychannel', function(arg1, arg2, arg3) {
 })
 ```
 
-
 ## Methods
 
 ### NodeMonkey#constructor([\<object>options[, \<string>name]])
@@ -179,9 +178,10 @@ By default, this will automatically attach to the `console` object and send log 
 The constructed instance contains two useful properties named `local` and `remote`. If you want to only log something to either the local terminal or only to the remote browser console and not both, despite Node Monkey being attached to the `console` object, you can do so using these objects as demonstrated below.
 
 **Example**
+
 ```
-let NodeMonkey = require('node-monkey')
-let monkey = NodeMonkey()
+const NodeMonkey = require('node-monkey')
+const monkey = NodeMonkey()
 
 // With the default options this will show in the browser console and in your terminal
 console.log('Hello world!')
@@ -198,10 +198,10 @@ monkey.remote.log('Remote!')
 You can include Node Monkey in all the files within your app that you want and if used like the examples above, each call to `NodeMonkey()` will always return the same instance you first constructed, ignoring any options passed on subsequent calls. However, you may want to construct new instances with different options. To do so, give your instance a name:
 
 ```js
-let NodeMonkey = require('node-monkey')
-let monkey1 = NodeMonkey()          // Creates an instance named 'default'
-let monkey2 = NodeMonkey('george')  // Creates a new instance with default options
-let monkey3 = NodeMonkey({          // Creates a new instance with custom options named 'ninja'
+const NodeMonkey = require('node-monkey')
+const monkey1 = NodeMonkey()          // Creates an instance named 'default'
+const monkey2 = NodeMonkey('george')  // Creates a new instance with default options
+const monkey3 = NodeMonkey({          // Creates a new instance with custom options named 'ninja'
   server: {
     silent: true
   }
@@ -213,8 +213,8 @@ If you don't specify a port for additional instances it will automatically be se
 To get an already constructed instance in another file just call it with the name again:
 
 ```js
-let NodeMonkey = require('node-monkey')
-let monkey3 = NodeMonkey('ninja')
+const NodeMonkey = require('node-monkey')
+const monkey3 = NodeMonkey('ninja')
 ```
 
 ### NodeMonkey#getServerPaths()
@@ -224,6 +224,7 @@ Use this when instantiating Node Monkey with your own web server. At a minimum t
 **Return**
 
 **Example response object**
+
 ```js
 {
   basePath: '/srv/myapp/node_modules/node-monkey/dist',
@@ -244,8 +245,9 @@ Detaches Node Monkey from the built-in `console` object.
 
 Adds a custom command that can be called remotely from the browser or SSH command line if it's enabled. When the command is called from either interface your `exec` callback will be called with four arguments, as follows:
 
-_exec(opts, term, callback)_: 
-* `opts`: An object containing two properties currently available to commands to use as needed 
+_exec(opts, term, callback)_:
+
+* `opts`: An object containing two properties currently available to commands to use as needed
   * `args<object>`: Any parsed arguments given on the command line. They are parsed using [minimist](https://github.com/substack/minimist) so see the documentation there for further details.
   * `username<string>`: The username of the user that is executing the command
 * `term<object>`: An object containing a few functions for working with input and output

@@ -7,14 +7,15 @@ For the SSH interface to be activated it needs to generate host keys. The first 
 **Enabling SSH**
 
 ```js
-let monkey = require('node-monkey')({
+import NodeMonkey from "node-monkey"
+
+const monkey = NodeMonkey({
   dataDir: `${__dirname}/monkey-data`,
   ssh: {
     enabled: true
   }
 })
 ```
-
 
 ## Usage
 

@@ -1,6 +1,6 @@
 import _ from "lodash"
 import socketio from "socket.io"
-import CmdMan from "./command-manager"
+import CommandInterface from "./command-interface"
 
 export default (options) => {
   let io, ns
@@ -15,7 +15,7 @@ export default (options) => {
 
   ns = io.of("/nm")
   ns.on("connection", (socket) => {
-    let cmdMan = null
+    let cmdInterface = null
     socket.emit("settings", options.clientSettings)
     socket.emit("auth")
 
@@ -43,12 +43,12 @@ export default (options) => {
         return
       }
 
-      if (!cmdMan) {
-        cmdMan = createCmdMan(options.cmdManager, socket)
+      if (!cmdInterface) {
+        cmdInterface = createCmdInterface(options.cmdManager, socket)
       }
 
-      cmdMan
-        .runCmd(command, socket.username)
+      options.cmdManager
+        .runCmd(command, socket.username, cmdInterface)
         .then((output) => {
           socket.emit("cmdResponse", cmdId, null, output)
         })
@@ -65,42 +65,40 @@ export default (options) => {
   return ns
 }
 
-function createCmdMan(cmdManager, socket) {
-  let promptId = 0,
-    prompts = {}
+function createCmdInterface(cmdManager, socket) {
+  let promptId = 0
+  const prompts = {}
 
-  let cmdManOpts = {
-    writeLn: null,
-    write: (val, opts) => {
-      if (!val) return
+  const writeFn = (val, opts) => {
+    if (!val) return
 
-      socket.emit("console", {
-        method: "log",
-        args: [val],
-      })
-    },
-    error: (val, opts) => {
-      if (!val) return
-
-      socket.emit("console", {
-        method: "error",
-        args: [val],
-      })
-    },
-    prompt: (promptTxt, opts, cb) => {
-      if (typeof opts === "function") {
-        cb = opts
-        opts = undefined
-      }
-      opts || (opts = {})
-
-      let pid = promptId++
-      socket.emit("prompt", pid, promptTxt, opts)
-
-      prompts[pid] = cb
-    },
+    socket.emit("console", {
+      method: "log",
+      args: [val],
+    })
   }
-  cmdManOpts.writeLn = cmdManOpts.write
+
+  const errorFn = (val, opts) => {
+    if (!val) return
+
+    socket.emit("console", {
+      method: "error",
+      args: [val],
+    })
+  }
+
+  const promptFn = (promptTxt, opts, cb) => {
+    if (typeof opts === "function") {
+      cb = opts
+      opts = undefined
+    }
+    opts || (opts = {})
+
+    let pid = promptId++
+    socket.emit("prompt", pid, promptTxt, opts)
+
+    prompts[pid] = cb
+  }
 
   socket.on("promptResponse", (promptId, response) => {
     if (prompts[promptId]) {
@@ -108,5 +106,5 @@ function createCmdMan(cmdManager, socket) {
     }
   })
 
-  return cmdManager.bindI(cmdManOpts)
+  return new CommandInterface(cmdManager, writeFn, writeFn, errorFn, promptFn)
 }

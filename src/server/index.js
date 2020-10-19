@@ -10,7 +10,7 @@ import bunyanStream from "./bunyan-stream"
 import setupServer from "./setup-server"
 import setupSocket from "./setup-socket"
 import SSHMan from "./ssh-manager"
-import CmdMan from "./command-manager"
+import CommandManager from "./command-manager"
 import UserManager from "./user-manager"
 import utils from "./utils"
 
@@ -122,7 +122,7 @@ class NodeMonkey {
   }
 
   _setupCmdMan() {
-    this._cmdMan = new CmdMan({
+    this._cmdMan = new CommandManager({
       write: (val, opts) => {
         console.log(val)
       },
@@ -288,8 +288,8 @@ class NodeMonkey {
 
       this.SSHMan = new SSHMan({
         monkey: this,
-        cmdManager: this._cmdMan,
         userManager: this.userManager,
+        cmdManager: this._cmdMan,
         silent: this.options.server.silent,
         host: sshOpts.host,
         port: sshOpts.port,
@@ -410,7 +410,7 @@ class NodeMonkey {
 
     ++attachedCount
 
-    let serverOptions = this.options.server
+    const serverOptions = this.options.server
     disableLocalOutput = disableLocalOutput !== undefined ? disableLocalOutput : serverOptions.disableLocalOutput
 
     _.each(this.remote, (fn, method) => {

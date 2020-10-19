@@ -3,12 +3,7 @@ import utils from "./utils"
 import minimist from "minimist"
 
 class CommandManager {
-  io
   commands = {}
-
-  constructor(ioInterface) {
-    this.io = ioInterface
-  }
 
   addCmd = (cmdName, opts, exec) => {
     if (this.commands[cmdName]) {
@@ -26,30 +21,10 @@ class CommandManager {
     }
   }
 
-  // bindI(ioInterface) {
-  //   let boundI = _.mapValues(this)
-  //   Object.assign(
-  //     boundI,
-  //     _.mapValues(this.constructor.prototype, (val, key) => {
-  //       if (val instanceof Function) {
-  //         if (key === "runCmd") {
-  //           return val.bind(this, ioInterface)
-  //         }
-  //         return val.bind(this)
-  //       } else {
-  //         return val
-  //       }
-  //     }),
-  //   )
-
-  //   return boundI
-  // }
-
-  runCmd = async (rawCommand, asUser) => {
+  runCmd = async (rawCommand, asUser, io) => {
     const parsed = utils.parseCommand(rawCommand)
     const cmdName = parsed[0]
     const cmd = this.commands[cmdName]
-    const { io } = this
 
     if (!asUser) {
       throw new Error(`Missing user context for command '${cmdName}'`)
