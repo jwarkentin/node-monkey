@@ -3,7 +3,7 @@ import cycle from "../lib/cycle"
 import convertStyles from "./convert-styles"
 
 let initialized = false
-let monkey = (window.monkey = {
+const monkey = (window.monkey = {
   cmdId: 0,
   runningCmd: {},
   connect: null,

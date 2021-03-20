@@ -77,6 +77,7 @@ export default [
       new HtmlWebpackPlugin({
         title: "NodeMonkey Client Test",
         inject: "head",
+        scriptLoading: "blocking",
         template: `${__dirname}/src/client/index.html`,
       }),
     ],

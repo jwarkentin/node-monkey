@@ -2,7 +2,6 @@ import os from "os"
 import fs from "fs"
 import path from "path"
 import { EventEmitter } from "events"
-import { execSync } from "child_process"
 import _ from "lodash"
 import keypair from "keypair"
 import cycle from "../lib/cycle"
@@ -354,7 +353,7 @@ class NodeMonkey {
 
   _sendMessages() {
     const remoteClients = this.remoteClients
-    if (_.size(remoteClients.adapter.rooms["authed"])) {
+    if (_.size(remoteClients.adapter.rooms.get("authed"))) {
       _.each(this.msgBuffer, (info) => {
         remoteClients.to("authed").emit("console", cycle.decycle(info))
       })

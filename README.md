@@ -60,15 +60,15 @@ Although Node Monkey supports many features, getting started is designed to be e
 The simplest usage looks like this:
 
 ```js
-let NodeMonkey = require("node-monkey")
+const NodeMonkey = require("node-monkey")
 NodeMonkey()
 ```
 
 Node Monkey also supports many configuration [options](doc/usage/server.md#options) and named instances. The call takes the form `NodeMonkey([options[, name])`. So, for example, to suppress local console output and only see output in your connected browser or terminal you might do something like this:
 
 ```js
-let NodeMonkey = require("node-monkey")
-let monkey = NodeMonkey({
+const NodeMonkey = require("node-monkey")
+const monkey = NodeMonkey({
   server: {
     disableLocalOutput: true,
   },
@@ -78,10 +78,10 @@ let monkey = NodeMonkey({
 You can include Node Monkey in all the files within your app that you want and if used like the examples above, each call to `NodeMonkey()` will always return the same instance you first constructed, ignoring any options passed on subsequent calls. However, you may want to construct new instances with different options. To do so, give your instance a name:
 
 ```js
-let NodeMonkey = require("node-monkey")
-let monkey1 = NodeMonkey() // Creates an instance named 'default'
-let monkey2 = NodeMonkey("george") // Creates a new instance with default options
-let monkey3 = NodeMonkey(
+const NodeMonkey = require("node-monkey")
+const monkey1 = NodeMonkey() // Creates an instance named 'default'
+const monkey2 = NodeMonkey("george") // Creates a new instance with default options
+const monkey3 = NodeMonkey(
   {
     // Creates a new instance with custom options named 'ninja'
     server: {
@@ -97,8 +97,8 @@ If you don't specify a port for additional instances it will automatically be se
 To get an already constructed instance in another file just call it with the name again:
 
 ```js
-let NodeMonkey = require("node-monkey")
-let monkey3 = NodeMonkey("ninja")
+const NodeMonkey = require("node-monkey")
+const monkey3 = NodeMonkey("ninja")
 ```
 
 When you start your app you will see the following output:

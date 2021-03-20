@@ -8,32 +8,6 @@
 
 /*! @babel/runtime/helpers/typeof */
 
-/*! CommonJS bailout: module.exports is used directly at 17:0-14 */
-
-/*! CommonJS bailout: module.exports is used directly at 5:4-18 */
-
-/*! CommonJS bailout: module.exports is used directly at 9:4-18 */
-
-/*! export default [not provided] [used in main] [usage prevents renaming] */
-
-/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
-
-/*! namespace exports */
-
-/*! other exports [not provided] [no usage info] */
-
-/*! runtime requirements: __webpack_require__, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
-
-/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
-
-/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.g, __webpack_require__.d, __webpack_require__.* */
-
-/*! runtime requirements: __webpack_require__, __webpack_require__.r, __webpack_exports__, __webpack_require__.* */
-
-/*! runtime requirements: module */
-
-/*! unknown exports (runtime-defined) */
-
 /*!**************************!*\
   !*** ./src/lib/cycle.js ***!
   \**************************/
@@ -54,6 +28,6 @@
   !*** ./src/client/convert-styles.js ***!
   \**************************************/
 
-/*!*******************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/typeof.js ***!
-  \*******************************************************/
+/*!***********************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/typeof.js ***!
+  \***********************************************************/

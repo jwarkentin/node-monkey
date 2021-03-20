@@ -1,6 +1,6 @@
 import fs from "fs"
 import tty from "tty"
-import { native as pty } from "node-pty"
+import { native as nativePty } from "node-pty"
 import ssh2 from "ssh2"
 import termkit from "terminal-kit"
 import CommandInterface from "./command-interface"
@@ -240,16 +240,23 @@ class SSHClient {
   }
 
   _initPty() {
-    const newPty = pty.open(this.ptyInfo.cols, this.ptyInfo.rows)
+    const newPty = nativePty.open(this.ptyInfo.cols, this.ptyInfo.rows)
     this.pty = {
       master_fd: newPty.master,
       slave_fd: newPty.slave,
       master: new tty.WriteStream(newPty.master),
       slave: new tty.ReadStream(newPty.slave),
     }
-    this.pty.slave.getWindowSize = () => {
-      return [this.ptyInfo.cols, this.ptyInfo.rows]
-    }
+
+    Object.defineProperty(this.pty.slave, "columns", {
+      enumerable: true,
+      get: () => this.ptyInfo.cols,
+    })
+    Object.defineProperty(this.pty.slave, "rows", {
+      enumerable: true,
+      get: () => this.ptyInfo.rows,
+    })
+
     this.stream.stdin.pipe(this.pty.master)
     this.pty.master.pipe(this.stream.stdout)
   }
@@ -261,6 +268,8 @@ class SSHClient {
       stderr: this.pty.slave,
       generic: this.ptyInfo.term,
       appName: this.title,
+      isSSH: true,
+      isTTY: true,
     }))
 
     term.on("key", this.onKey.bind(this))
@@ -290,7 +299,7 @@ class SSHClient {
   }
 
   prompt() {
-    let term = this.term
+    const { term } = this
     term.windowTitle(this._interpolate(this.title))
     term.bold(this._interpolate(this.promptTxt))
 
@@ -300,6 +309,7 @@ class SSHClient {
         {
           history: this.cmdHistory,
           autoComplete: Object.keys(this.options.cmdManager.commands),
+          autoCompleteHint: true,
           autoCompleteMenu: true,
         },
         (error, input) => {

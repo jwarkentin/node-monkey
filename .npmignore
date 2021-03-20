@@ -1,5 +1,4 @@
 *
 .*
-!dist/*.js
-!dist/*.js.map
-!LICENSE.md
+!dist/**/*
+!doc/**/*

@@ -3,24 +3,19 @@ import socketio from "socket.io"
 import CommandInterface from "./command-interface"
 
 export default (options) => {
-  let io, ns
-  let userManager = options.userManager
+  const io = socketio()
+  io.attach(options.server, {
+    autoUnref: true,
+  })
 
-  if (typeof options.server === "function") {
-    io = socketio(options.server)
-  } else {
-    io = socketio()
-    io.attach(options.server)
-  }
-
-  ns = io.of("/nm")
+  const ns = io.of("/nm")
   ns.on("connection", (socket) => {
     let cmdInterface = null
     socket.emit("settings", options.clientSettings)
     socket.emit("auth")
 
     socket.on("auth", (creds) => {
-      userManager
+      options.userManager
         .verifyUser(creds.username, creds.password)
         .then((result) => {
           socket.emit("authResponse", result, result ? undefined : "Incorrect password")
