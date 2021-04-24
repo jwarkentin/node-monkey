@@ -36,7 +36,7 @@
     "restify": "^8.5.1",
     "restify-cors-middleware": "^1.1.1",
     "scrypt-kdf": "^2.0.1",
-    "socket.io": "^4.0.0",
+    "socket.io": "^4.0.1",
     "source-map-support": "^0.5.16",
     "ssh2": "^0.8.9",
     "terminal-kit": "^2.0.5"
