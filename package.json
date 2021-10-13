@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.13.10",
-    "keypair": "^1.0.2",
+    "keypair": "^1.0.4",
     "lodash": "^4.17.21",
     "minimist": "^1.2.5",
     "node-pty": "^0.10.0",
