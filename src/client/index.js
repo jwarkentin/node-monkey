@@ -17,7 +17,7 @@ const monkey = (window.monkey = {
     initialized = true
 
     return new Promise((resolve, reject) => {
-      utils.addHeadScript(`${utils.getClientHost()}/socket.io/socket.io.js`).addEventListener("load", () => {
+      utils.addHeadScript(`${utils.getClientHost()}/monkey.io-client/socket.io.js`).addEventListener("load", () => {
         initClient()
           .then((client) => {
             let authAttempts = 0,
@@ -150,7 +150,9 @@ const monkey = (window.monkey = {
 
 function initClient() {
   return new Promise((resolve, reject) => {
-    let client = io(`${location.origin}/nm`)
+    let client = io(`${location.origin}/nm`, {
+      path: "/monkey.io"
+    })
 
     client.on("connect", function () {})
 

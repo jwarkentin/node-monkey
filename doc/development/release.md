@@ -12,7 +12,7 @@ To publish `next` version:
 
 ```sh
 npm version <NEW VERSION>
-git push HEAD:master --follow-tags
+git push --follow-tags
 npm publish --tag next
 ```
 

@@ -5,6 +5,7 @@ import CommandInterface from "./command-interface"
 export default (options) => {
   const io = socketio()
   io.attach(options.server, {
+    path: "/monkey.io",
     autoUnref: true,
   })
 

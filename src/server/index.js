@@ -98,13 +98,21 @@ class NodeMonkey {
   }
 
   getServerPaths() {
+    const resolve = __non_webpack_require__ ? __non_webpack_require__.resolve : resolve
     const basePath = path.normalize(`${__dirname}/../dist`)
+    const sioBasePath = path.normalize(`${path.dirname(resolve("socket.io"))}/../client-dist`)
 
-    return {
-      basePath,
-      client: "monkey.js",
-      index: "index.html",
+    const files = {
+      "/": `${basePath}/index.html`,
+      "/monkey.js": `${basePath}/monkey.js`,
+      "/monkey.js.map": `${basePath}/monkey.js.map`,
     }
+
+    fs.readdirSync(sioBasePath).forEach(fileName => {
+      files[`/monkey.io-client/${fileName}`] = `${sioBasePath}/${fileName}`
+    })
+
+    return files
   }
 
   _displayServerWelcome() {
@@ -242,7 +250,9 @@ class NodeMonkey {
     if (srvOpts.server) {
       this.serverApp = srvOpts.server
     } else {
-      this.serverApp = setupServer({ name: "Node Monkey", })
+      this.serverApp = setupServer({
+        filePaths: this.getServerPaths(),
+      })
       this.serverApp.listen(srvOpts.port, srvOpts.host)
     }
 
@@ -434,6 +444,10 @@ class NodeMonkey {
       ConsoleEvent.removeListener(method, this._typeHandlers[method])
       delete this._typeHandlers[method]
     })
+  }
+
+  stop() {
+    this.serverApp.close()
   }
 }
 
