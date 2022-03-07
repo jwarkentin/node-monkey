@@ -96,8 +96,9 @@ function createCmdInterface(cmdManager, socket) {
   }
 
   socket.on("promptResponse", (promptId, response) => {
-    if (prompts[promptId]) {
-      prompts[promptId](null, response)
+    const cb = prompts[promptId]
+    if (cb) {
+      cb(null, response)
     }
   })
 
