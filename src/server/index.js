@@ -109,8 +109,9 @@ class NodeMonkey {
 
   _displayServerWelcome() {
     if (!this.options.server.silent) {
-      const server = this.options.server.server
-      if (server.listening) {
+      const server = this.serverApp
+      const address = typeof server.address === "function" && server.address()
+      if (server.listening && address) {
         const proto = this._getServerProtocol(server)
         const { address, port } = server.address()
         this.local.log(`Node Monkey listening at ${proto}://${address}:${port}`)
@@ -236,22 +237,18 @@ class NodeMonkey {
 
   _setupServer() {
     const options = this.options
-    let server = options.server.server
+    const srvOpts = options.server
 
-    if (!server) {
-      const serverApp = setupServer({
-        name: "Node Monkey",
-      })
-      server = this.options.server.server = serverApp.server
-
-      let { host, port } = options.server
-      serverApp.listen(port, host)
+    if (srvOpts.server) {
+      this.serverApp = srvOpts.server
+    } else {
+      this.serverApp = setupServer({ name: "Node Monkey", })
+      this.serverApp.listen(srvOpts.port, srvOpts.host)
     }
 
     this._displayServerWelcome()
-    this.serverApp = server
     this.remoteClients = setupSocket({
-      server: server.server || server,
+      server: this.serverApp,
       cmdManager: this._cmdMan,
       userManager: this.userManager,
       onAuth: this._sendMessages.bind(this),

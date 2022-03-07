@@ -33,8 +33,6 @@
     "lodash": "^4.17.21",
     "minimist": "^1.2.5",
     "node-pty": "^0.10.1",
-    "restify": "^8.6.1",
-    "restify-cors-middleware": "^1.1.1",
     "scrypt-kdf": "^2.0.1",
     "socket.io": "^4.4.1",
     "source-map-support": "^0.5.21",
