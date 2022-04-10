@@ -1,3 +1,11 @@
+## Version 1.1.5
+
+- Security updates
+
+## Version 1.1.4
+
+- Security updates
+
 ## Version 1.1.3
 
 - Update ALL package-lock dependencies to resolve Github dependabot alert
@@ -6,9 +14,7 @@
 
 - Update dependencies to address security warnings. Everything _should_ work the same as before but there were definitely updates with breaking changes in dependencies that could be lurking. Any breakage is a bug.
 
-Version 1.1.1
-
----
+## Version 1.1.1
 
 - Update dependencies to fix latest security vulnerability warnings in deps
 - Update docs to use modern best practices with `import` and `const`

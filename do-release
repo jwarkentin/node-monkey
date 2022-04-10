@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# function echo_run {
+#   echo "> $1"
+#   eval $1
+# }
+
+echo "Enter the release type [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease | from-git]"
+read -p '> ' RELTYPE
+
+# `set -x` will echo commands before running them
+set -x
+
+npm version "$RELTYPE"
+git push --follow-tags
+RELVER="$(node -pe "require('./package.json').version")"
+npm publish "https://github.com/jwarkentin/node-monkey/archive/refs/tags/v$RELVER.tar.gz"

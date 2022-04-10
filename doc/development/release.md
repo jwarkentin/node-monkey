@@ -1,27 +1,34 @@
-## How to cut a release
+# How to cut a release
 
 > **IMPORTANT: Make sure documentation and changelog are up-to-date**
 
-To do a production build:
+1. Do a production build:
 
-```sh
-NODE_ENV=production npm run build
-```
+    ```sh
+    NODE_ENV=production npm run build
+    ```
 
-To publish `next` version:
+2. Draft the new release on Github: <https://github.com/jwarkentin/node-monkey/releases>
 
-```sh
-npm version <NEW VERSION>
-git push --follow-tags
-npm publish --tag next
-```
+3. Publish to npm (defaults to `latest` tag):
 
-To release after confirming it works:
+    Just use the `do-release` script in the project root:
 
-```sh
-npm dist-tags add node-monkey@next latest
-```
+    ```sh
+    $ ./do-release
+    Enter the release type [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease | from-git]
+    > patch
+    ...
+    ```
 
-See [here](https://jbavari.github.io/blog/2015/10/16/using-npm-tags/) for more details on tagging releases.
+    These are the manual steps:
 
-Don't forget to publish the release on Github as well: <https://github.com/jwarkentin/node-monkey/releases>
+    ```sh
+    npm version [major|minor|patch|<NEW VERSION>]
+    git push --follow-tags
+    npm publish https://github.com/jwarkentin/node-monkey/archive/refs/tags/v<NEW VERSION>.tar.gz
+    ```
+
+    > Note: See [here](https://jbavari.github.io/blog/2015/10/16/using-npm-tags/) for more details on tagging releases.
+    >
+    > Previousely the `next` tag was being used for pre-releases but currently there isn't enough demand for the added process complexity. If the community grows and needs better production guarantees and support it could be reinroduced.
